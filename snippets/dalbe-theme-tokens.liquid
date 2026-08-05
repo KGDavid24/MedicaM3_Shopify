@@ -1,0 +1,22 @@
+{%- doc -%}
+  Single source of truth for this project's brand color tokens, rendered once
+  globally from layout/theme.liquid. Individual dalbe-* sections should
+  reference these vars rather than declaring/hardcoding their own copies.
+
+  Colors match medicam3.ro (the actual client site) directly, confirmed via
+  computed styles on the live site: navy for nav/links/prices/general CTAs,
+  red reserved specifically for "Adaugă în coș" and sale/discount prices.
+  Earlier work in this project used a teal (#00babc) pulled from dentstore.ro
+  (an unrelated reference site used earlier in the project) — that never
+  matched this client's actual brand and has been replaced.
+{%- enddoc -%}
+
+{% style %}
+  :root {
+    --dalbe-navy: #131f5d;
+    --dalbe-red: #e9324e;
+    --dalbe-text: #222222;
+    --dalbe-heading: #020202;
+    --dalbe-header-text: #ffffff;
+  }
+{% endstyle %}

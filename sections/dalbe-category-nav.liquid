@@ -1,0 +1,824 @@
+{% liquid
+  assign nav_locked_open = false
+  if request.page_type == 'index'
+    assign nav_locked_open = true
+  endif
+%}
+<dalbe-category-nav class="dalbe-category-nav" {% if nav_locked_open %}data-locked-open{% endif %}>
+  <div class="dalbe-category-nav__trigger-bar">
+    <button
+      type="button"
+      class="dalbe-category-nav__trigger"
+      data-trigger
+      aria-expanded="{{ nav_locked_open }}"
+      aria-controls="DalbeCategoryNavPanel-{{ section.id }}"
+    >
+      <span class="svg-wrapper">{{ 'icon-menu.svg' | inline_asset_content }}</span>
+      <span>{{ section.settings.trigger_label }}</span>
+    </button>
+
+    {% if section.settings.trigger_message != blank %}
+      <p class="dalbe-category-nav__trigger-message">{{ section.settings.trigger_message }}</p>
+    {% endif %}
+
+    {% if section.blocks.size > 0 %}
+      <nav
+        class="dalbe-category-nav__trigger-links"
+        aria-label="{{ 'accessibility.secondary_navigation' | t | default: 'Secondary' }}"
+      >
+        {% for block in section.blocks %}
+          <a
+            href="{{ block.settings.link | default: '/pages/404-placeholder' }}"
+            class="dalbe-category-nav__trigger-link"
+            {{ block.shopify_attributes }}
+          >
+            {{ block.settings.label }}
+          </a>
+        {% endfor %}
+      </nav>
+    {% endif %}
+  </div>
+
+  <div
+    class="dalbe-category-nav__panel"
+    id="DalbeCategoryNavPanel-{{ section.id }}"
+    data-panel
+  >
+    <div
+      class="dalbe-category-nav__backdrop"
+      data-backdrop
+    ></div>
+
+    <div
+      class="dalbe-category-nav__sidebar"
+      data-sidebar
+    >
+      <div class="dalbe-category-nav__sidebar-header">
+        <span class="dalbe-category-nav__sidebar-title">{{ section.settings.trigger_label }}</span>
+        <button
+          type="button"
+          class="dalbe-category-nav__close"
+          data-close
+          aria-label="{{ 'actions.close' | t }}"
+        >
+          <span class="svg-wrapper">{{ 'icon-close.svg' | inline_asset_content }}</span>
+        </button>
+      </div>
+
+      <ul class="dalbe-category-nav__groups list-unstyled">
+        {% for group in metaobjects.menu_group.values %}
+          <li class="dalbe-category-nav__group">
+            <span class="dalbe-category-nav__group-title">{{ group.title.value }}</span>
+            <ul class="dalbe-category-nav__categories list-unstyled">
+              {% for category in group.children.value %}
+                {% liquid
+                  assign category_children = category.children.value
+                  assign has_flyout = category_children.size | default: 0
+                  assign category_key = category.system.handle
+                %}
+                <li
+                  class="dalbe-category-nav__category"
+                  {% if has_flyout > 0 %}
+                    data-category-trigger="{{ category_key }}"
+                  {% endif %}
+                >
+                  <a
+                    href="{{ category.url.value.url }}"
+                    class="dalbe-category-nav__category-link"
+                  >
+                    {{ category.title.value }}
+                  </a>
+                  {% if has_flyout > 0 %}
+                    <button
+                      type="button"
+                      class="dalbe-category-nav__expand"
+                      data-expand-toggle
+                      aria-expanded="false"
+                      aria-label="{{ 'accessibility.expand' | t | default: 'Expand' }}"
+                    >
+                      <span class="svg-wrapper icon-caret">{{ 'icon-caret.svg' | inline_asset_content }}</span>
+                    </button>
+                    <div
+                      class="dalbe-category-nav__accordion"
+                      data-accordion
+                      hidden
+                    >
+                      {% render 'dalbe-category-nav-list', nodes: category_children %}
+                    </div>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div
+      class="dalbe-category-nav__flyout"
+      data-flyout
+    >
+      {% for group in metaobjects.menu_group.values %}
+        {% for category in group.children.value %}
+          {% liquid
+            assign category_children = category.children.value
+            assign has_flyout = category_children.size | default: 0
+            assign category_key = category.system.handle
+
+            # dalbe: per-category sketch illustrations scraped from the
+            # source site's own mega menu (each category's flyout there sets
+            # one as a ::before background-image on its dropdown panel).
+            # Matched by group + category title text rather than metaobject
+            # handle, since "Consumabile"/"Echipamente" repeat across
+            # groups and handles are auto-generated/not hand-authored.
+            assign sketch_map_key = group.title.value | append: '|' | append: category.title.value
+            assign sketch_asset = blank
+            case sketch_map_key
+              when 'Produse Cabinet|Consumabile'
+                assign sketch_asset = 'dalbe-menu-sketch-cabinet-consumabile.svg'
+              when 'Produse Cabinet|Echipamente'
+                assign sketch_asset = 'dalbe-menu-sketch-cabinet-echipamente.svg'
+              when 'Produse CAD-CAM|Consumabile'
+                assign sketch_asset = 'dalbe-menu-sketch-cadcam-consumabile.svg'
+              when 'Produse CAD-CAM|Echipamente'
+                assign sketch_asset = 'dalbe-menu-sketch-cadcam-echipamente.svg'
+              when 'Produse Laborator|Consumabile'
+                assign sketch_asset = 'dalbe-menu-sketch-laborator-consumabile.svg'
+              when 'Produse Laborator|Echipamente'
+                assign sketch_asset = 'dalbe-menu-sketch-laborator-echipamente.svg'
+              when 'Produse Ortodontie|Ortodontie'
+                assign sketch_asset = 'dalbe-menu-sketch-ortodontie.svg'
+              when 'Produse Ortodontie|Ortodontie laborator'
+                assign sketch_asset = 'dalbe-menu-sketch-ortodontie-laborator.svg'
+            endcase
+
+            # dalbe: caps the node-list's column-count based on this
+            # category's TOTAL item count (depth-1 group headers + their
+            # direct leaf links) — not just the group count. A category can
+            # have plenty of group headers but few leaves under each one
+            # (e.g. Ortodontie: 13 groups, mostly 1-2 leaves each) and still
+            # end up thin once split across 3-4 columns; total item count
+            # reflects how much content there actually is either way.
+            assign total_item_count = 0
+            for depth1_node in category_children
+              assign total_item_count = total_item_count | plus: 1
+              assign leaf_count = depth1_node.children.value.size | default: 0
+              assign total_item_count = total_item_count | plus: leaf_count
+            endfor
+
+            assign content_columns = 4
+            if total_item_count <= 8
+              assign content_columns = 1
+            elsif total_item_count <= 16
+              assign content_columns = 2
+            elsif total_item_count <= 28
+              assign content_columns = 3
+            endif
+          %}
+          {% if has_flyout > 0 %}
+            <div
+              class="dalbe-category-nav__flyout-panel"
+              data-category-panel="{{ category_key }}"
+              style="--dalbe-content-columns: {{ content_columns }};"
+              hidden
+            >
+              {% render 'dalbe-category-nav-list', nodes: category_children %}
+              {% if sketch_asset != blank %}
+                <img
+                  class="dalbe-category-nav__flyout-sketch"
+                  src="{{ sketch_asset | asset_url }}"
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                >
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</dalbe-category-nav>
+
+<script
+  src="{{ 'dalbe-category-nav.js' | asset_url }}"
+  type="module"
+></script>
+
+<script>
+  (function () {
+    // dalbe: replaces Horizon's own synchronous --header-group-height
+    // calculation in layout/theme.liquid, which requires a <header-component>
+    // custom element to exist (it bails out via an early `return` otherwise —
+    // see the inline script right after the header-group sections render
+    // there). Our header (sections/dalbe-header.liquid) intentionally doesn't use
+    // that element — adopting it would need headerDrawerContainer/
+    // headerMenu/headerRowTop refs that don't exist here and throws
+    // MissingRefError (assets/component.js) without them. Without this,
+    // --header-group-height would stay unset until assets/header.js's own
+    // async ResizeObserver eventually corrects it, and things that depend on
+    // it (e.g. blocks/_product-details.liquid's sticky max-height) would pop
+    // into place after load — exactly the kind of thing fixed elsewhere in
+    // this project. This runs synchronously, right after both header-group
+    // sections have rendered (this script sits at the end of the LAST one),
+    // mirroring the same calculation assets/header.js's ResizeObserver does.
+    var headerGroup = document.getElementById('header-group');
+    if (!headerGroup) return;
+    var total = 0;
+    for (var i = 0; i < headerGroup.children.length; i++) {
+      var el = headerGroup.children[i];
+      if (el instanceof HTMLElement) total += el.offsetHeight;
+    }
+    document.body.style.setProperty('--header-group-height', Math.round(total) + 'px');
+  })();
+</script>
+
+{% stylesheet %}
+  /* dalbe: brand color tokens (--dalbe-navy/--dalbe-text/--dalbe-heading) now
+     come from snippets/dalbe-theme-tokens.liquid, rendered globally in
+     layout/theme.liquid — no local declarations needed here anymore. */
+  .dalbe-category-nav {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    display: block;
+    position: relative;
+  }
+
+  .dalbe-category-nav-section {
+    position: relative;
+    z-index: var(--layer-menu-drawer);
+  }
+
+  /* dalbe: this wrapper carries the teal full-bleed background (previously
+     on .dalbe-category-nav__trigger itself) since the bar now holds the
+     trigger button PLUS a message and a persistent link row alongside it
+     — matching the source site, where "Categorii", the free-shipping
+     message, and the utility links (Raportare Reactie Adversa, Hub,
+     Cataloage, Companie, Contact) all live in this same single bar, not a
+     separate one above the header. */
+  .dalbe-category-nav__trigger-bar {
+    display: flex;
+    align-items: center;
+    /* dalbe: 0 here on purpose — the trigger's own fixed 280px width
+       below places the message precisely at the sidebar's right edge; any
+       gap here would just push it further right by that amount. */
+    gap: 0;
+    width: 100%;
+    padding: var(--padding-sm) 0;
+    background: var(--dalbe-navy);
+    position: relative;
+  }
+
+  .dalbe-category-nav__trigger-bar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    background: var(--dalbe-navy);
+    z-index: -1;
+  }
+
+  .dalbe-category-nav__trigger {
+    display: flex;
+    align-items: center;
+    /* dalbe: fixed at 280px — the exact width of the category sidebar
+       below (.dalbe-category-nav__sidebar) — so the message that follows
+       starts precisely where the sidebar ends / the hero begins, instead
+       of an arbitrary gap value that just happens to look about right at
+       one viewport width. The button's own content (icon + label) is far
+       narrower than 280px, so it just sits left-aligned within this box
+       with empty space after it, same as the sidebar's own content does
+       beneath it. */
+    flex: 0 0 280px;
+    gap: var(--gap-xs);
+    padding: 0;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    font-family: inherit;
+    /* dalbe: now the same size as the message/links, so bold is what
+       carries the emphasis instead of a bigger size. */
+    font-weight: 700;
+    font-size: 1.0625rem;
+  }
+
+  .dalbe-category-nav__trigger .svg-wrapper {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    color: #ffffff;
+  }
+
+  .dalbe-category-nav__trigger-message {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.0625rem;
+    white-space: nowrap;
+  }
+
+  .dalbe-category-nav__trigger-links {
+    display: flex;
+    align-items: center;
+    /* dalbe: gap between the 5 links themselves — margin-inline-start:
+       auto below anchors the group's right edge (Contact) in place
+       regardless of this value, so widening it pushes Raportare Reactie
+       Adversa (the first link) further left rather than pushing Contact
+       further right off the edge. */
+    gap: var(--gap-2xl);
+    margin-inline-start: auto;
+    flex-wrap: wrap;
+  }
+
+  .dalbe-category-nav__trigger-link {
+    color: #ffffff;
+    font-size: 1.0625rem;
+    text-decoration: none;
+    white-space: nowrap;
+    opacity: 0.95;
+  }
+
+  .dalbe-category-nav__trigger-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
+  @media screen and (max-width: 989px) {
+    .dalbe-category-nav__trigger-message,
+    .dalbe-category-nav__trigger-links {
+      display: none;
+    }
+  }
+
+  .dalbe-category-nav__panel {
+    display: none;
+  }
+
+  .dalbe-category-nav__close {
+    display: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--color-foreground);
+  }
+
+  .dalbe-category-nav__sidebar-header {
+    display: none;
+  }
+
+  .dalbe-category-nav__backdrop {
+    display: none;
+  }
+
+  .dalbe-category-nav__groups,
+  .dalbe-category-nav__categories,
+  .dalbe-category-nav__node-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .dalbe-category-nav__group-title {
+    display: block;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+    color: var(--dalbe-navy);
+    /* dalbe: trimmed from 8px vertical to help close the gap between this
+       sidebar's natural content height and the hero image's aspect-ratio-
+       driven height at typical desktop widths. */
+    padding: 5px 24px;
+    border-bottom: 2px solid var(--dalbe-navy);
+    text-align: left;
+  }
+
+  .dalbe-category-nav__category {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ebebeb;
+  }
+
+  .dalbe-category-nav__category-link {
+    flex: 1 1 auto;
+    display: block;
+    /* dalbe: trimmed from 8px vertical, same reason as .group-title above. */
+    padding: 5px 24px 5px 48px;
+    text-decoration: none;
+    color: var(--dalbe-text);
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .dalbe-category-nav__category-link:hover,
+  .dalbe-category-nav__category[data-active] .dalbe-category-nav__category-link {
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-category-nav__expand {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: var(--dalbe-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dalbe-category-nav__expand .svg-wrapper {
+    width: 12px;
+    height: 12px;
+    transition: transform var(--animation-speed) var(--animation-easing);
+  }
+
+  .dalbe-category-nav__expand[aria-expanded='true'] .svg-wrapper {
+    transform: rotate(180deg);
+  }
+
+  .dalbe-category-nav__node-link {
+    display: block;
+    text-decoration: none;
+    color: var(--dalbe-text);
+    /* dalbe: trimmed from 0.9375rem/3px — same spacing-budget reasoning as
+       the other flyout trims; this repeats on every leaf link, dozens per
+       panel, so even a small per-line saving adds up across the list. */
+    font-size: 0.875rem;
+    padding-block: 2px;
+  }
+
+  .dalbe-category-nav__node-link:hover {
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-category-nav__node--depth-1 > .dalbe-category-nav__node-link {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+    color: var(--dalbe-heading);
+    /* dalbe: trimmed from padding-md — same spacing-budget reasoning as
+       the flyout panel/group-margin trims near .dalbe-category-nav__flyout-panel. */
+    padding-block-start: 0.375rem;
+  }
+
+  .dalbe-category-nav__node--depth-1 > .dalbe-category-nav__node-link:hover {
+    color: var(--dalbe-navy);
+  }
+
+  @media screen and (min-width: 990px) {
+    .dalbe-category-nav__panel {
+      display: flex;
+      align-items: flex-start;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      /* dalbe: this panel spans the full page width at a high z-index, but
+         only the sidebar (always) and flyout (on hover) actually show
+         content — the rest must be click/hover-through or it silently
+         swallows every pointer event meant for whatever sits underneath
+         (e.g. the hero slideshow), including its arrows and slide links. */
+      pointer-events: none;
+    }
+
+    /* dalbe: the homepage keeps this sidebar+flyout permanently visible
+       (it sits beside the hero slideshow, heights matched — see
+       --dalbe-hero-height below). Every other page starts collapsed and
+       only reveals it once the trigger button is clicked (see
+       assets/dalbe-category-nav.js's #openDrawer, which now toggles
+       [data-open] at desktop widths too instead of only on mobile). */
+    .dalbe-category-nav:not([data-locked-open]):not([data-open]) .dalbe-category-nav__panel {
+      display: none;
+    }
+
+    /* dalbe: computes the exact same height as the hero slideshow
+       (sections/dalbe-hero-slideshow.liquid), independently, using this
+       section's own local .section-scoped copy of these variables rather
+       than a value shared/mirrored from the hero section — both sections
+       are .section--page-width on the same page, so this resolves
+       identically in both places, and the images' native aspect ratio
+       (1248x439, confirmed identical across all 8 slides) is a fixed
+       constant either way.
+
+       Uses 100vw rather than Horizon's own %-based --util-page-margin-
+       offset (base.css) deliberately: this value feeds into a height
+       calc() below, and a bare % resolves against whichever property
+       finally consumes it (width in a width property, height in a height
+       property) — reused as-is here it silently resolved to nothing
+       against this section's auto-height ancestor. vw always means "% of
+       viewport width" regardless of which property reads it, so the
+       expression stays correct here. See dalbe-hero-slideshow.liquid for
+       the fuller version of this note. */
+    .dalbe-category-nav-section {
+      --dalbe-page-margin-offset: max(
+        var(--page-margin),
+        calc((100vw - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--page-margin) * 2))) / 2)
+      );
+      --dalbe-left-margin: calc(var(--dalbe-page-margin-offset) + 280px);
+      --dalbe-content-width: min(
+        calc(var(--page-width) - var(--page-margin) * 2),
+        calc(100vw - var(--dalbe-left-margin) - var(--dalbe-page-margin-offset))
+      );
+      /* dalbe: never shorter than 25.3rem — this sidebar's own (now
+         trimmed) content needs that much room. Below that, the hero image
+         grows past its column's own width to match (see the matching
+         max()/justify-self: center in dalbe-hero-slideshow.liquid). */
+      --dalbe-hero-height: max(calc(var(--dalbe-content-width) * 439 / 1248), 25.3rem);
+      /* dalbe: this section's own left edge (where the sidebar itself
+         sits) also needs to match the utility-links row and hero exactly
+         — overriding the stock %-based page-width grid with this same
+         vw-based margin on both sides, not just computing it for the
+         height variables above, closes a several-px gap against those
+         other sections for the same bare-%-vs-vw reason documented
+         throughout this file and dalbe-hero-slideshow.liquid.
+
+         Deliberately NOT reusing --dalbe-content-width for the middle
+         column here — that one has the hero's +280px sidebar-clearance
+         baked into its left margin, which doesn't apply to this section's
+         own (symmetric, un-adjusted) layout; reusing it would make this
+         section's own central column narrower than it should be. */
+      --dalbe-nav-content-width: min(
+        calc(var(--page-width) - var(--page-margin) * 2),
+        calc(100vw - var(--dalbe-page-margin-offset) * 2)
+      );
+      grid-template-columns: var(--dalbe-page-margin-offset) var(--dalbe-nav-content-width) var(--dalbe-page-margin-offset);
+    }
+
+    .dalbe-category-nav__sidebar {
+      position: relative;
+      /* dalbe: above the flyout (z-index 1, below) so the flyout's closed,
+         slid-left position tucks visibly behind this opaque sidebar
+         instead of overlapping on top of it. */
+      z-index: 2;
+      flex: 0 0 280px;
+      width: 280px;
+      height: var(--dalbe-hero-height, 30rem);
+      overflow-y: auto;
+      background: var(--color-background);
+      /* dalbe: --color-border resolves to solid black in this theme and
+         --shadow-popover carries a 20px blur — together they read as a
+         black separator bar bleeding onto the hero image beside it. */
+      pointer-events: auto;
+    }
+
+    .dalbe-category-nav__accordion {
+      display: none;
+    }
+    
+    .dalbe-category-nav__expand {
+      pointer-events: none;
+    }
+
+    .dalbe-category-nav__flyout {
+      position: absolute;
+      top: 0;
+      left: 280px;
+      right: calc(50% - 50vw + 2rem); /* Stretches the panel to the right edge of the screen */
+      /* dalbe: min-height floors this at the hero/sidebar's height so a
+         short category still reads as a properly sized drawer, not a
+         sliver — the content-aware column-count on
+         .dalbe-category-nav__node-list below (fewer, taller columns for
+         categories with little content) does most of that work already,
+         and this just fills in whatever gap is left with the sketch's own
+         space rather than leaving it to the balanced-column height alone.
+         max-height stays uncoupled from --dalbe-hero-height on the tall
+         side — a genuinely deep category is much taller than the
+         sidebar's simple 8-row list, so forcing a single matching height
+         left it scrolling even for perfectly ordinary categories.
+
+         Safe to pair with min-height this time (unlike an earlier
+         attempt) because nothing below depends on this box's height
+         propagating to children via % or column-fill: auto anymore — the
+         content-aware column-count reads a value computed server-side in
+         Liquid, not this element's rendered size. */
+      min-height: var(--dalbe-hero-height, 30rem);
+      max-height: 96vh;
+      overflow-y: auto;
+      background: var(--color-background);
+      box-shadow: var(--shadow-popover);
+      z-index: 1;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: auto;
+      /* dalbe: slides out from under the sidebar's rows like a drawer
+         being pulled open, instead of the source site's top-to-bottom
+         accordion reveal — starts tucked fully behind the (higher
+         z-index, opaque) sidebar and travels its own full width into
+         place, rather than a small fade-in nudge. A longer, custom
+         duration + an ease-out-expo-style curve (fast start, soft
+         landing) reads as a deliberate pull rather than a quick fade;
+         var(--animation-speed) alone (the theme's default, tuned for
+         quick UI feedback like hover states) was too fast/subtle to
+         register as a slide at all. */
+      transform: translateX(-100%);
+      transition:
+        opacity 0.2s var(--animation-easing),
+        visibility 0.45s,
+        transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .dalbe-category-nav__flyout[data-open] {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .dalbe-category-nav__flyout-panel {
+      position: relative;
+      /* dalbe: trimmed from padding-xl on the block axis to help fit
+         longer categories without scrolling at common laptop heights
+         (e.g. 1366x768) — inline padding kept generous since width is
+         rarely the constraint here. */
+      padding-block: var(--padding-md);
+      padding-inline: var(--padding-xl);
+    }
+
+    .dalbe-category-nav__flyout-panel[hidden] {
+      display: none;
+    }
+
+    .dalbe-category-nav__flyout-sketch {
+      /* dalbe: a decorative corner overlay (matching the source site, where
+         the illustration bleeds into the panel's own empty space rather
+         than sitting in its own column) — NOT a flex sibling competing for
+         width with the columns, which previously squeezed them down to
+         ~550px, forced category names onto multiple lines each, and
+         inflated the panel's total height enough to need scrolling even
+         for perfectly ordinary categories. */
+      position: absolute;
+      right: var(--padding-xl);
+      bottom: 0;
+      z-index: 0;
+      /* dalbe: fixed length rather than a % of the panel — keeps the
+         sketch a stable, predictable size regardless of how tall the
+         panel ends up being (min-height floor vs. taller real content). */
+      max-width: 380px;
+      max-height: 320px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .dalbe-category-nav__node-list[data-depth='1'] {
+      position: relative;
+      z-index: 1;
+      /* dalbe: fewer, wider columns below 1200px — narrower columns wrap
+         the longer category names onto multiple lines each, which
+         inflates the panel's total height enough to need scrolling even
+         after the other spacing trims in this section.
+
+         Also capped by --dalbe-content-columns (set inline per panel —
+         see the category loop below), so a category with only a few
+         groups gets fewer, naturally taller columns via the browser's
+         normal column-balancing instead of thinly spreading 4-5 groups
+         across 3-4 columns and leaving each one short. (A column-fill:
+         auto + explicit-height version of this was tried and reverted —
+         see the note on .dalbe-category-nav__flyout above.) */
+      column-count: min(3, var(--dalbe-content-columns, 3));
+      column-gap: var(--gap-xl);
+    }
+
+    @media screen and (min-width: 1200px) {
+      .dalbe-category-nav__node-list[data-depth='1'] {
+        column-count: min(4, var(--dalbe-content-columns, 4));
+      }
+    }
+
+    .dalbe-category-nav__node--depth-1 {
+      break-inside: avoid;
+      /* dalbe: trimmed from margin-md — same reasoning as the panel's own
+         padding trim above, this repeats once per group heading (several
+         per column), so it adds up. */
+      margin-block-end: 0.5rem;
+    }
+  }
+
+  @media screen and (max-width: 989px) {
+    .dalbe-category-nav__trigger {
+      /* dalbe: overrides the desktop flex: 0 0 280px — flex-basis being an
+         explicit length (not auto) takes priority over a plain width, so
+         width:100% alone wouldn't actually undo the fixed 280px here. */
+      flex: 1 1 auto;
+      width: 100%;
+    }
+
+    .dalbe-category-nav[data-open] .dalbe-category-nav__panel {
+      display: block;
+    }
+
+    .dalbe-category-nav__panel {
+      position: fixed;
+      inset: 0;
+      z-index: var(--layer-menu-drawer);
+    }
+
+    .dalbe-category-nav__backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgb(0 0 0 / 0.4);
+    }
+
+    .dalbe-category-nav__sidebar {
+      position: relative;
+      z-index: 1;
+      width: 85vw;
+      max-width: 25rem;
+      height: 100dvh;
+      overflow-y: auto;
+      background: var(--color-background);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dalbe-category-nav__sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--padding-lg);
+      background: var(--dalbe-navy);
+      color: #ffffff;
+    }
+
+    .dalbe-category-nav__sidebar-title {
+      font-weight: 700;
+    }
+
+    .dalbe-category-nav__close .svg-wrapper {
+      color: #ffffff;
+    }
+
+    .dalbe-category-nav__flyout {
+      display: none;
+    }
+
+    .dalbe-category-nav__accordion[hidden] {
+      display: none;
+    }
+
+    .dalbe-category-nav__accordion {
+      padding-inline-start: var(--padding-lg);
+      padding-block-end: var(--padding-xs);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Category navigation",
+  "tag": "div",
+  "class": "dalbe-category-nav-section section section--page-width",
+  "settings": [
+    {
+      "type": "text",
+      "id": "trigger_label",
+      "label": "Trigger label",
+      "default": "Categorii"
+    },
+    {
+      "type": "text",
+      "id": "trigger_message",
+      "label": "Message",
+      "info": "Shown next to the trigger on desktop, hidden on mobile.",
+      "default": "Livrare gratuita pentru orice comanda"
+    },
+    {
+      "type": "paragraph",
+      "content": "Shows every 'Menu group' metaobject entry, in the order they appear under Content → Metaobjects → Menu Group."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "link",
+      "name": "Link",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category navigation"
+    }
+  ]
+}
+{% endschema %}

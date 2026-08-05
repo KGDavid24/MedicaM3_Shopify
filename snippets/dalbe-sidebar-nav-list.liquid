@@ -1,0 +1,76 @@
+{%- doc -%}
+  Static "Ghid Client" sidebar nav shared by the info pages built on
+  sections/dalbe-page-sidebar.liquid. Renders two groups of links:
+  (1) the 3 custom pages this project actually builds Liquid templates for
+      (About / Services / Cookie policy — resolved via pages['handle'],
+      never hand-built URLs, per this project's own documented pitfall
+      around guessed/auto-slugified handles);
+  (2) every native Shopify policy the merchant has filled in under
+      Settings -> Policies (Terms, Privacy, Refund, Shipping, Contact
+      information, Legal notice), read from the generic `shop.policies`
+      object — the same accessor blocks/footer-policy-list.liquid already
+      uses. These need zero theme code once Admin content exists; this
+      loop just picks up however many are actually filled in.
+
+  No hover flyout, no accordion, no mobile-collapse JS — deliberately much
+  simpler than dalbe-category-nav's sidebar, which is purpose-built for the
+  metaobject-driven mega menu and shouldn't be reused/adapted here.
+{%- enddoc -%}
+
+{% liquid
+  assign custom_pages = 'cine-suntem|Cine suntem,servicii|Servicii,despre-cookies|Despre Cookies' | split: ','
+%}
+
+<ul class="dalbe-sidebar-nav-list list-unstyled">
+  {% for entry in custom_pages %}
+    {% liquid
+      assign handle = entry | split: '|' | first
+      assign label = entry | split: '|' | last
+      assign linked_page = pages[handle]
+    %}
+    {% if linked_page != blank %}
+      <li class="dalbe-sidebar-nav-list__item">
+        <a
+          href="{{ linked_page.url }}"
+          class="dalbe-sidebar-nav-list__link"
+          {% if page != blank and page.handle == handle %}aria-current="page"{% endif %}
+        >
+          {{ label }}
+        </a>
+      </li>
+    {% endif %}
+  {% endfor %}
+
+  {% for policy in shop.policies %}
+    {% if policy != blank %}
+      <li class="dalbe-sidebar-nav-list__item">
+        <a href="{{ policy.url }}" class="dalbe-sidebar-nav-list__link">
+          {{ policy.title | escape }}
+        </a>
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>
+
+{% stylesheet %}
+  .dalbe-sidebar-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .dalbe-sidebar-nav-list__link {
+    display: block;
+    padding: 10px 16px;
+    border-radius: var(--style-border-radius-buttons, 4px);
+    color: var(--dalbe-text, #222222);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .dalbe-sidebar-nav-list__link:hover,
+  .dalbe-sidebar-nav-list__link[aria-current='page'] {
+    color: var(--dalbe-navy);
+    background: rgb(19 31 93 / 0.08);
+  }
+{% endstylesheet %}

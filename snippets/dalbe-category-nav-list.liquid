@@ -1,0 +1,34 @@
+{%- doc -%}
+  Recursively renders one tier of Menu Node metaobjects for the category navigation.
+  Depth 1 nodes are styled as column headers; deeper nodes are plain leaf links.
+
+  @param {array} nodes - Array of resolved `menu_node` metaobjects (already `.value`-resolved).
+  @param {number} [depth] - Recursion depth. Starts at 1 for the tier directly under a category.
+
+  @example
+  {% render 'dalbe-category-nav-list', nodes: category.children.value %}
+{%- enddoc -%}
+
+{% liquid
+  assign depth = depth | default: 1
+%}
+<ul class="dalbe-category-nav__node-list list-unstyled" data-depth="{{ depth }}">
+  {% for node in nodes %}
+    {% liquid
+      assign child_nodes = node.children.value
+      assign has_children = child_nodes.size | default: 0
+      assign next_depth = depth | plus: 1
+    %}
+    <li class="dalbe-category-nav__node dalbe-category-nav__node--depth-{{ depth }}">
+      <a
+        href="{{ node.url.value.url }}"
+        class="dalbe-category-nav__node-link"
+      >
+        {{ node.title.value }}
+      </a>
+      {% if has_children > 0 %}
+        {% render 'dalbe-category-nav-list', nodes: child_nodes, depth: next_depth %}
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>

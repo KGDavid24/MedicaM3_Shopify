@@ -1,5 +1,3 @@
-
-
 {% liquid
   assign media_count = 0
   assign media_count_mobile = 0
@@ -111,6 +109,14 @@
 
   if section.index == 1
     assign fetch_priority = 'high'
+  endif
+
+  if section.settings.section_height == 'custom'
+    assign hero_min_height_value = section.settings.section_height_custom | append: 'svh'
+  elsif section.settings.section_height == 'full-screen'
+    assign hero_min_height_value = '100svh'
+  else
+    assign hero_min_height_value = 'var(--section-height-' | append: section.settings.section_height | append: ')'
   endif
 %}
 
@@ -464,13 +470,7 @@
     --hero-border-width: {{ section.settings.border_width }}px;
     --hero-border-opacity: {{ section.settings.border_opacity }}%;
     --blur-opacity: {{ section.settings.reflection_opacity | divided_by: 100.0 }};
-    {% if section.settings.section_height == 'custom' %}
-      --hero-min-height: {{ section.settings.section_height_custom }}svh;
-    {% elsif section.settings.section_height == "full-screen" %}
-       --hero-min-height: 100svh;
-    {% else %}
-      --hero-min-height: var(--section-height-{{ section.settings.section_height }});
-    {% endif %}
+    --hero-min-height: {{ hero_min_height_value }};
   "
   {% if request.visual_preview_mode %}
     data-shopify-visual-preview
@@ -499,12 +499,14 @@
   {% endif %}
 
   {% comment %}
-    Hardcoded to section--full-width bc the media has to be full width in all cases.
-    hero__content-wrapper applies section_width.
+    Stock Horizon hardcodes section--full-width here so hero media always bleeds edge to
+    edge, regardless of the section_width setting (hero__content-wrapper below still applies
+    it separately). dalbe: overridden to respect section_width so the media is constrained
+    the same way the source site's hero is (page margin visible on both sides).
   {% endcomment %}
 
   <div
-    class="hero__container spacing-style section section--full-width"
+    class="hero__container spacing-style section section--{{ section.settings.section_width | default: 'full-width' }}"
     style="{% render 'spacing-style', settings: section.settings %}"
   >
     {%- if section.settings.link != blank -%}
@@ -545,6 +547,23 @@
   </div>
 </div>
 
+<style>
+  /* dalbe: expose the hero's own height variables at :root so the category-nav
+     sidebar (a sibling section, not a descendant of .hero) can size itself to
+     match the hero exactly, from first paint, with no JS measurement. */
+  :root {
+    --hero-min-height: {{ hero_min_height_value }};
+  }
+
+  /* dalbe: scoped to body (not :root/html) because --header-group-height is
+     set via JS as an inline style on <body> itself — html is body's parent,
+     and CSS inheritance only flows parent-to-child, so a :root-scoped rule
+     can never see a property declared on its own descendant. */
+  body:has(#header-group > .header-section > #header-component) {
+    --hero-height-offset: var(--header-group-height, 0);
+  }
+</style>
+
 {% stylesheet %}
   .hero-wrapper {
     --hero-height-offset: 0px;
@@ -558,6 +577,7 @@
   .hero {
     position: relative;
     min-height: calc(var(--hero-min-height) - var(--hero-height-offset));
+    background-color: #f5f5f5; /* Moved to the outer wrapper so it bleeds edge-to-edge */
   }
 
   .hero[data-shopify-visual-preview] {
@@ -600,6 +620,13 @@
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: repeat(var(--hero-media-count, 1), 1fr);
+  }
+
+  /* dalbe: when the hero is set to page-width, constrain the media too (stock Horizon
+     always bleeds it full-width via the rule above) so it matches the source site,
+     where the hero image sits inside the same margin as the rest of the page. */
+  .hero__container.section--page-width .hero__media-grid {
+    grid-column: 2 / 3;
   }
 
   .hero--auto .hero__media {
@@ -750,6 +777,7 @@
       }
     }
   }
+
 {% endstylesheet %}
 
 {% schema %}
@@ -993,10 +1021,6 @@
         {
           "value": "flex-end",
           "label": "t:options.right"
-        },
-        {
-          "value": "space-between",
-          "label": "t:options.space_between"
         }
       ],
       "default": "flex-start",
@@ -1153,6 +1177,7 @@
       "type": "color",
       "id": "background_color",
       "label": "t:settings.background_color",
+      "default": "#f5f5f5",
       "placeholder": "t:settings.default"
     },
     {

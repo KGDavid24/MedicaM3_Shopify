@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "shopify-theme-dev",
+      "runtimeExecutable": "shopify",
+      "runtimeArgs": ["theme", "dev", "--store", "medicam3-dj2nnq28.myshopify.com"],
+      "port": 9292
+    }
+  ]
+}

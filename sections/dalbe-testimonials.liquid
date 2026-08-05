@@ -1,0 +1,74 @@
+{%- doc -%}
+  A customer-testimonial grid (Alege cu incredere on the homepage).
+  Deliberately NOT built on blocks/review.liquid -- that block is a
+  product-metafield-bound star-rating widget (reviews-app data), the wrong
+  data shape for a customer name/quote/role card with no product context.
+{%- enddoc -%}
+
+<div class="dalbe-testimonials section section--page-width">
+  {% if section.settings.heading != blank %}
+    <h2 class="dalbe-testimonials__heading">{{ section.settings.heading }}</h2>
+  {% endif %}
+  <ul class="dalbe-testimonials__grid list-unstyled">
+    {% content_for 'blocks' %}
+  </ul>
+</div>
+
+{% stylesheet %}
+  .dalbe-testimonials {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    padding-block: var(--padding-xl);
+  }
+
+  .dalbe-testimonials__heading {
+    text-align: center;
+    margin: 0 0 var(--margin-xl);
+  }
+
+  .dalbe-testimonials__grid {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-lg);
+  }
+
+  @media screen and (max-width: 989px) {
+    .dalbe-testimonials__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .dalbe-testimonials__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "tag": "div",
+  "class": "dalbe-testimonials-section",
+  "blocks": [
+    {
+      "type": "dalbe-testimonial"
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Alege cu încredere – Clienții noștri confirmă!"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Testimonials"
+    }
+  ]
+}
+{% endschema %}

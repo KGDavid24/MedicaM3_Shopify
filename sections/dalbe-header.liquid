@@ -1,0 +1,353 @@
+{%- doc -%}
+  A custom header replacing Horizon's stock one, matching the source site's
+  layout: logo, an always-visible search bar (not an icon-triggered popup),
+  a phone number, and three labeled actions (Cere oferta / Contul meu /
+  Coș). Simplified from the source in one way: cart and account are plain
+  links to the real cart/account pages rather than a drawer/popover, so
+  this doesn't need to reimplement Horizon's own cart-drawer or account
+  components — clicking them still works correctly, just as a normal page
+  navigation instead of an overlay.
+{%- enddoc -%}
+
+{% liquid
+  assign alt_text_fallback = 'accessibility.home_logo_alt' | t: store_name: shop.name
+  assign phone_href = section.settings.phone_number | remove: ' ' | remove: '.' | remove: '-'
+%}
+
+<header class="dalbe-header">
+  <div class="dalbe-header__inner section section--full-width">
+    <div class="dalbe-header__row">
+    <div class="dalbe-header__brand">
+      <a href="{{ routes.root_url }}" class="dalbe-header__logo">
+        {% render 'image',
+          image: settings.logo,
+          class: 'dalbe-header__logo-image',
+          height: settings.logo_height,
+          alt_text_fallback: alt_text_fallback,
+          text_fallback: shop.name
+        %}
+      </a>
+    </div>
+
+    <div class="dalbe-header__middle">
+      <form action="{{ routes.search_url }}" method="get" role="search" class="dalbe-header__search">
+        <input
+          type="search"
+          name="q"
+          class="dalbe-header__search-input"
+          placeholder="{{ section.settings.search_placeholder }}"
+          value="{{ search.terms | escape }}"
+          autocomplete="off"
+        >
+        <button type="submit" class="dalbe-header__search-submit" aria-label="{{ 'general.search.submit' | t | default: 'Search' }}">
+          {{ 'icon-search.svg' | inline_asset_content }}
+        </button>
+      </form>
+
+      {% if section.settings.phone_number != blank %}
+        <a href="tel:{{ phone_href }}" class="dalbe-header__phone">
+          <span class="svg-wrapper" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1L6.6 10.8Z"/>
+            </svg>
+          </span>
+          <span class="dalbe-header__phone-text">
+            <small>{{ section.settings.phone_label }}</small>
+            {{ section.settings.phone_number }}
+          </span>
+        </a>
+      {% endif %}
+    </div>
+
+    <div class="dalbe-header__actions">
+      <a href="{{ section.settings.quote_link | default: '/pages/404-placeholder' }}" class="dalbe-header__action dalbe-header__action--quote">
+        <span class="svg-wrapper" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 2h9l4 4v16H6z"/>
+            <path d="M14 2v5h5M9 12h6M9 16h6M9 8h2"/>
+          </svg>
+        </span>
+        <span>{{ section.settings.quote_label }}</span>
+      </a>
+
+      <a href="{{ routes.account_url }}" class="dalbe-header__action">
+        <span class="svg-wrapper" aria-hidden="true">{{ 'icon-account.svg' | inline_asset_content }}</span>
+        {% comment %}
+          dalbe: hardcoded rather than {{ 'content.account_title' | t }} —
+          that key resolves to the theme's built-in English string
+          ("Account"), not blank, so | default: 'Contul meu' never actually
+          kicks in (default only applies to nil/empty values, not just
+          "not the string I wanted").
+        {% endcomment %}
+        <span>Contul meu</span>
+      </a>
+
+      <a href="{{ routes.cart_url }}" class="dalbe-header__action dalbe-header__action--cart">
+        <span class="svg-wrapper" aria-hidden="true">{{ 'icon-cart.svg' | inline_asset_content }}</span>
+        <span>Coș</span>
+        {% if cart.item_count > 0 %}
+          <span class="dalbe-header__cart-count">{{ cart.item_count }}</span>
+        {% else %}
+          <span class="dalbe-header__cart-count">0</span>
+        {% endif %}
+      </a>
+    </div>
+    </div>
+  </div>
+</header>
+
+{% stylesheet %}
+  .dalbe-header {
+    background: var(--color-background);
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  }
+
+  /* dalbe: .dalbe-header__inner is left as a plain .section--full-width
+     grid container (no display:flex of its own) — putting the flex row
+     styles directly on it, as an earlier version of this did, silently
+     overrode the grid, and everything sat flush against the viewport's
+     left edge instead. The actual flex row lives one level down, on
+     .dalbe-header__row, which is full-width (spans grid-column: 1/-1)
+     rather than the standard page-width margin (40px+, responsive) used
+     elsewhere on the site — this row wants a smaller, fixed edge padding
+     instead, closer to the viewport edge than the rest of the page. */
+  .dalbe-header__row {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-lg);
+    padding-block: var(--padding-md);
+    padding-inline: 1.5rem;
+  }
+
+  /* dalbe: middle (search + phone) needs to line up with the free-shipping
+     message in the category-nav trigger bar below, not sit at the row's
+     own visual center — its left edge is the nav's sidebar width (280px)
+     plus that section's own page-margin offset (see the --dalbe-left-margin
+     formula duplicated in dalbe-category-nav.liquid; duplicated again here
+     rather than shared, per that file's established convention, since each
+     section resolves the same vw-based formula independently). Anchoring
+     via position:absolute (instead of flex auto-margins) decouples this
+     from however wide the logo/action-icons happen to be. */
+  .dalbe-header__row {
+    position: relative;
+    --dalbe-header-page-margin-offset: max(
+      var(--page-margin),
+      calc((100vw - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--page-margin) * 2))) / 2)
+    );
+    --dalbe-header-left-margin: calc(var(--dalbe-header-page-margin-offset) + 280px);
+  }
+
+  .dalbe-header__brand {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+  }
+
+  .dalbe-header__middle {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-lg);
+  }
+
+  @media screen and (min-width: 990px) {
+    .dalbe-header__middle {
+      position: absolute;
+      left: var(--dalbe-header-left-margin);
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  .dalbe-header__logo {
+    display: flex;
+    align-items: center;
+  }
+
+  .dalbe-header__logo-image {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* dalbe: when no logo image is uploaded, snippets/image.liquid's
+     text_fallback renders shop.name as plain unwrapped text (no element/
+     class of its own to target) directly inside .dalbe-header__logo — so
+     this styles that case via the link itself. */
+  .dalbe-header__logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dalbe-navy);
+    text-decoration: none;
+  }
+
+  .dalbe-header__search {
+    flex: 0 0 auto;
+    width: 320px;
+    display: flex;
+    position: relative;
+  }
+
+  .dalbe-header__search-input {
+    width: 100%;
+    padding: 0.625rem var(--padding-lg);
+    border: 1px solid var(--color-border);
+    border-radius: 4px 0 0 4px;
+    font-size: 0.9375rem;
+    font-family: inherit;
+  }
+
+  .dalbe-header__search-submit {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    background: var(--dalbe-navy);
+    border: none;
+    border-radius: 0 4px 4px 0;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  .dalbe-header__search-submit .svg-wrapper,
+  .dalbe-header__search-submit svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+
+  .dalbe-header__phone {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--gap-xs);
+    color: var(--dalbe-header-text, #222222);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .dalbe-header__phone .svg-wrapper {
+    width: 28px;
+    height: 28px;
+  }
+
+  .dalbe-header__phone-text {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.2;
+  }
+
+  .dalbe-header__phone-text small {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--color-foreground-secondary, #666666);
+  }
+
+  .dalbe-header__actions {
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--gap-xl);
+  }
+
+  .dalbe-header__action {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: var(--dalbe-header-text, #222222);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .dalbe-header__action .svg-wrapper,
+  .dalbe-header__action .svg-wrapper svg {
+    width: var(--icon-size-md, 24px);
+    height: var(--icon-size-md, 24px);
+  }
+
+  .dalbe-header__cart-count {
+    position: absolute;
+    top: -4px;
+    right: -10px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--dalbe-navy);
+    color: #ffffff;
+    font-size: 0.625rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media screen and (max-width: 989px) {
+    .dalbe-header__phone,
+    .dalbe-header__action--quote {
+      display: none;
+    }
+
+    .dalbe-header__search {
+      flex: 1 1 auto;
+      width: auto;
+    }
+
+    .dalbe-header__actions {
+      gap: var(--gap-md);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Header",
+  "tag": "div",
+  "class": "dalbe-header-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Cauta in catalogul nostru"
+    },
+    {
+      "type": "header",
+      "content": "Phone"
+    },
+    {
+      "type": "text",
+      "id": "phone_label",
+      "label": "Phone label",
+      "default": "Suport Telefonic"
+    },
+    {
+      "type": "text",
+      "id": "phone_number",
+      "label": "Phone number",
+      "default": "021.308.57.51"
+    },
+    {
+      "type": "header",
+      "content": "Quote request"
+    },
+    {
+      "type": "text",
+      "id": "quote_label",
+      "label": "Label",
+      "default": "Cere oferta"
+    },
+    {
+      "type": "url",
+      "id": "quote_link",
+      "label": "Link"
+    }
+  ]
+}
+{% endschema %}

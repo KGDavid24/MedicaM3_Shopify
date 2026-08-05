@@ -1,0 +1,217 @@
+{% liquid
+  assign autoplay = section.settings.autoplay
+%}
+
+{% capture controls %}
+  {% if section.blocks.size > 1 %}
+    {%- render 'slideshow-controls',
+      style: section.settings.slideshow_controls_style,
+      autoplay: autoplay,
+      item_count: section.blocks.size,
+      show_arrows: false,
+      arrows_on_media: true,
+      controls_on_media: true,
+      pagination_position: 'center',
+      icon_style: section.settings.icons_style
+    -%}
+  {% endif %}
+{% endcapture %}
+
+{% capture slides %}
+  {% content_for 'blocks' %}
+{% endcapture %}
+
+<div
+  id="DalbeHeroSlideshow-{{ section.id }}"
+  class="dalbe-hero-slideshow"
+>
+  <div class="dalbe-hero-slideshow__container section section--{{ section.settings.section_width | default: 'page-width' }}">
+    {% render 'slideshow',
+      class: 'dalbe-hero-slideshow__slideshow',
+      controls: controls,
+      show_arrows: section.blocks.size > 1,
+      icon_style: 'chevron',
+      icon_shape: section.settings.icons_shape,
+      autoplay: autoplay,
+      autoplay_speed: section.settings.autoplay_speed,
+      slides: slides,
+      slide_count: section.blocks.size
+    %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .dalbe-hero-slideshow {
+    position: relative;
+    background-color: #f5f5f5;
+    /* dalbe: no explicit height here — sized naturally by its content chain
+       down to .dalbe-hero-slideshow__slideshow, which gets an explicit
+       height from its own aspect-ratio calc below. */
+  }
+
+  .dalbe-hero-slideshow__container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dalbe-hero-slideshow__slideshow {
+    /* dalbe: below 990px the nav sidebar is a drawer, not an overlay, so
+       there's no cross-section width/height to match — just use the
+       images' own native aspect ratio directly against this element's
+       own (grid-determined) width. Overridden by the calc() below at
+       the nav's own >=990px breakpoint. */
+    aspect-ratio: 1248 / 439;
+  }
+
+  /* dalbe: the category-nav sidebar (280px) permanently overlays the left
+     edge of this section (see dalbe-category-nav.liquid). Without this, the
+     slideshow's own left page-margin column sits underneath the sidebar and
+     that much of every slide image is hidden.
+
+     --dalbe-page-margin-offset reimplements Horizon's own
+     --util-page-margin-offset (base.css, on .section) using 100vw instead
+     of a bare 100%. That distinction matters here specifically: a bare %
+     resolves relative to whichever CSS property finally consumes it — 100%
+     of width in grid-template-columns, but 100% of height if the same
+     variable is reused in a height calc() (which this file does, further
+     below, to derive the slideshow's height from its own resolved width).
+     Against this section's auto-height ancestor, that silently resolved to
+     nothing and collapsed the slideshow to 0 height. vw always means "% of
+     viewport width" regardless of which property reads it, so the same
+     expression stays correct in both a width and a height context. The
+     small (usually sub-20px) discrepancy between 100vw and the section's
+     true width (a vertical scrollbar) is an acceptable rounding error here.
+
+     The nav's own section computes this identical expression independently
+     (see dalbe-category-nav.liquid) rather than reading a value shared from
+     here, so the sidebar's right edge is always exactly
+     --dalbe-page-margin-offset + 280px (its own column's left margin plus
+     its fixed 280px width) — matching this section's left margin exactly,
+     at any viewport width, with no cross-section variable mirroring. */
+  @media screen and (min-width: 990px) {
+    .dalbe-hero-slideshow__container.section--page-width {
+      --dalbe-page-margin-offset: max(
+        var(--page-margin),
+        calc((100vw - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--page-margin) * 2))) / 2)
+      );
+      --dalbe-left-margin: calc(var(--dalbe-page-margin-offset) + 280px);
+      --dalbe-content-width: min(
+        calc(var(--page-width) - var(--page-margin) * 2),
+        calc(100vw - var(--dalbe-left-margin) - var(--dalbe-page-margin-offset))
+      );
+      grid-template-columns: var(--dalbe-left-margin) var(--dalbe-content-width) var(--dalbe-page-margin-offset);
+    }
+
+    .dalbe-hero-slideshow__slideshow {
+      /* dalbe: height is whichever is taller — the content column's own
+         width-derived height, or 25.3rem (the nav sidebar's snug content
+         height — see dalbe-category-nav.liquid, padding trimmed there to
+         bring this floor down as far as reasonably possible first). Below
+         that floor, width: auto + aspect-ratio grows the box past its
+         column's own width to reach it. justify-self: center (not the
+         grid item default of stretch, and not start) means that growth is
+         split evenly left and right instead of anchored to the left edge:
+         the left half extends under the always-visible sidebar (harmless
+         — the sidebar already opaquely covers that area) so only the
+         right half's excess needs to be clipped, roughly halving how much
+         of the image is lost compared to growing rightward only. */
+      height: max(calc(var(--dalbe-content-width) * 439 / 1248), 25.3rem);
+      width: auto;
+      aspect-ratio: 1248 / 439;
+      justify-self: center;
+    }
+  }
+
+  .dalbe-hero-slideshow__slideshow slideshow-container,
+  .dalbe-hero-slideshow__slideshow slideshow-slides,
+  .dalbe-hero-slideshow__slideshow slideshow-slide {
+    height: 100%;
+  }
+
+  .dalbe-hero-slideshow__slideshow slideshow-slides {
+    display: flex;
+  }
+
+  /* dalbe: the arrows sit flush against the image edges by default (no
+     inset for arrows_position: 'center') — give them a bit of breathing
+     room instead of touching the boundary. */
+  .dalbe-hero-slideshow__slideshow slideshow-arrows {
+    padding-inline: var(--padding-md);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Hero slideshow",
+  "tag": "section",
+  "class": "section-wrapper",
+  "blocks": [
+    {
+      "type": "dalbe-hero-slide"
+    }
+  ],
+  "disabled_on": {
+    "groups": ["header"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Width",
+      "options": [
+        { "value": "page-width", "label": "Page" },
+        { "value": "full-width", "label": "Full" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "type": "select",
+      "id": "icons_shape",
+      "label": "Arrow background",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "circle", "label": "Circle" },
+        { "value": "square", "label": "Square" }
+      ],
+      "default": "circle"
+    },
+    {
+      "type": "select",
+      "id": "slideshow_controls_style",
+      "label": "Pagination",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "dots", "label": "Dots" },
+        { "value": "counter", "label": "Counter" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Auto-rotate slides",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "Speed",
+      "min": 3,
+      "max": 7,
+      "step": 1,
+      "unit": "s",
+      "default": 5,
+      "visible_if": "{{ section.settings.autoplay }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero slideshow"
+    }
+  ]
+}
+{% endschema %}

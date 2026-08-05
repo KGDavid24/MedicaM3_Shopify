@@ -1,0 +1,112 @@
+{%- doc -%}
+  One step in a dalbe-process-steps section (see that file for the parent).
+  Renders differently depending on the parent section's display_mode:
+  compact shows an icon + title + one-line teaser; detailed shows an
+  auto-numbered badge (position-derived, not a merchant setting) + title +
+  full body copy + a CTA button/link.
+{%- enddoc -%}
+
+{% liquid
+  assign display_mode = section.settings.display_mode | default: 'compact'
+  assign block_index = section.blocks | find_index: 'id', block.id
+  assign step_number = block_index | plus: 1
+%}
+
+<li class="dalbe-process-steps__item" {{ block.shopify_attributes }}>
+  {% if display_mode == 'detailed' %}
+    <span class="dalbe-process-steps__number" aria-hidden="true">{{ step_number }}</span>
+  {% elsif block.settings.icon != blank or block.settings.placeholder_asset != blank %}
+    <span class="dalbe-process-steps__icon">
+      {% if block.settings.icon != blank %}
+        {{ block.settings.icon | image_url: width: 112 | image_tag: loading: 'lazy', alt: block.settings.title }}
+      {% else %}
+        <img
+          src="{{ block.settings.placeholder_asset | asset_url }}"
+          alt="{{ block.settings.title }}"
+          loading="lazy"
+        >
+      {% endif %}
+    </span>
+  {% endif %}
+
+  <div class="dalbe-process-steps__item-content">
+    {% if block.settings.title != blank %}
+      <h3 class="dalbe-process-steps__title">{{ block.settings.title }}</h3>
+    {% endif %}
+
+    {% if display_mode == 'compact' %}
+      {% if block.settings.teaser != blank %}
+        <p class="dalbe-process-steps__teaser">{{ block.settings.teaser }}</p>
+      {% endif %}
+    {% else %}
+      {% if block.settings.body != blank %}
+        <div class="dalbe-process-steps__body">{{ block.settings.body }}</div>
+      {% endif %}
+      {% if block.settings.cta_label != blank %}
+        <a href="{{ block.settings.cta_link | default: '#' }}" class="dalbe-process-steps__cta button">
+          {{ block.settings.cta_label }}
+        </a>
+      {% endif %}
+    {% endif %}
+  </div>
+</li>
+
+{% schema %}
+{
+  "name": "Process step",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Icon (compact mode only)"
+    },
+    {
+      "type": "image_picker",
+      "id": "icon",
+      "label": "Icon",
+      "info": "Optional — overrides the placeholder icon below once uploaded."
+    },
+    {
+      "type": "text",
+      "id": "placeholder_asset",
+      "label": "Placeholder icon filename",
+      "info": "Bundled theme asset shown until a real icon image is uploaded above."
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title"
+    },
+    {
+      "type": "text",
+      "id": "teaser",
+      "label": "Teaser (compact mode)",
+      "info": "Short one-line summary shown in the compact overview tile."
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body (detailed mode)",
+      "info": "Fuller description shown in the detailed list."
+    },
+    {
+      "type": "header",
+      "content": "Call to action (detailed mode)"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Contactează-ne!"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Button link"
+    }
+  ]
+}
+{% endschema %}

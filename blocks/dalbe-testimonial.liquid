@@ -1,0 +1,151 @@
+{%- doc -%}
+  One customer testimonial card in a dalbe-testimonials section instance. Avatar
+  uses an image_picker + placeholder_asset text fallback, following the
+  same convention as dalbe-utility-links.liquid.
+{%- enddoc -%}
+
+<li class="dalbe-testimonial" {{ block.shopify_attributes }}>
+  {% if block.settings.rating > 0 %}
+    <div class="dalbe-testimonial__rating" aria-hidden="true">
+      {% for i in (1..5) %}
+        <span class="dalbe-testimonial__star{% if i <= block.settings.rating %} dalbe-testimonial__star--filled{% endif %}">★</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if block.settings.quote != blank %}
+    <blockquote class="dalbe-testimonial__quote">{{ block.settings.quote }}</blockquote>
+  {% endif %}
+
+  <div class="dalbe-testimonial__author">
+    {% if block.settings.avatar != blank or block.settings.placeholder_asset != blank %}
+      <span class="dalbe-testimonial__avatar">
+        {% if block.settings.avatar != blank %}
+          {{ block.settings.avatar | image_url: width: 96 | image_tag: loading: 'lazy', alt: block.settings.name }}
+        {% else %}
+          <img src="{{ block.settings.placeholder_asset | asset_url }}" alt="{{ block.settings.name }}" loading="lazy">
+        {% endif %}
+      </span>
+    {% endif %}
+    <span class="dalbe-testimonial__author-text">
+      {% if block.settings.name != blank %}
+        <span class="dalbe-testimonial__name">{{ block.settings.name }}</span>
+      {% endif %}
+      {% if block.settings.role != blank %}
+        <span class="dalbe-testimonial__role">{{ block.settings.role }}</span>
+      {% endif %}
+    </span>
+  </div>
+</li>
+
+{% stylesheet %}
+  .dalbe-testimonial {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+    padding: var(--padding-lg);
+    background: var(--color-background);
+    border: 1px solid var(--color-border, #ebebeb);
+    border-radius: var(--style-border-radius-cards, 8px);
+  }
+
+  .dalbe-testimonial__rating {
+    color: var(--color-border, #dddddd);
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+
+  .dalbe-testimonial__star--filled {
+    color: var(--dalbe-red);
+  }
+
+  .dalbe-testimonial__quote {
+    margin: 0;
+    flex: 1 1 auto;
+    font-style: normal;
+    color: var(--dalbe-text, #222222);
+  }
+
+  .dalbe-testimonial__author {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-xs);
+  }
+
+  .dalbe-testimonial__avatar {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .dalbe-testimonial__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .dalbe-testimonial__author-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dalbe-testimonial__name {
+    font-weight: 700;
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-testimonial__role {
+    font-size: 0.8125rem;
+    color: var(--color-foreground-secondary, #666666);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Testimonial",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "quote",
+      "label": "Quote"
+    },
+    {
+      "type": "range",
+      "id": "rating",
+      "label": "Rating",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "default": 5,
+      "info": "0 hides the star row."
+    },
+    {
+      "type": "header",
+      "content": "Author"
+    },
+    {
+      "type": "text",
+      "id": "name",
+      "label": "Name"
+    },
+    {
+      "type": "text",
+      "id": "role",
+      "label": "Role / company"
+    },
+    {
+      "type": "image_picker",
+      "id": "avatar",
+      "label": "Avatar"
+    },
+    {
+      "type": "text",
+      "id": "placeholder_asset",
+      "label": "Placeholder avatar filename",
+      "info": "Bundled theme asset shown until a real avatar image is uploaded above."
+    }
+  ]
+}
+{% endschema %}

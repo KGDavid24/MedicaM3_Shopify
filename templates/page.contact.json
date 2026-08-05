@@ -75,6 +75,145 @@
     "form": {
       "type": "section",
       "blocks": {
+        "info": {
+          "type": "group",
+          "settings": {
+            "content_direction": "column",
+            "gap": 28,
+            "width": "custom",
+            "custom_width": 50,
+            "width_mobile": "custom",
+            "custom_width_mobile": 100,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "intro-heading": {
+              "type": "text",
+              "settings": {
+                "text": "<h3>Hai să vorbim!</h3>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "h3",
+                "font": "var(--font-body--family)",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "intro-body": {
+              "type": "text",
+              "settings": {
+                "text": "<p>Suntem la un mesaj distanță. Știm cât de important este să ai un partener de încredere în dotarea clinicii tale. Dacă ai întrebări sau ai nevoie de o ofertă personalizată, scrie-ne și îți răspundem rapid!</p>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "paragraph",
+                "font": "var(--font-body--family)",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "contact-direct": {
+              "type": "text",
+              "settings": {
+                "text": "<p><strong>Contact Direct</strong><br>Echipamente &amp; Consumabile<br><a href=\"mailto:office@medicam3.ro\">office@medicam3.ro</a><br><a href=\"tel:+40376509140\">+40 376 509 140</a></p>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "paragraph",
+                "font": "var(--font-body--family)",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "showroom": {
+              "type": "text",
+              "settings": {
+                "text": "<p><strong>Vizitează showroom-ul</strong><br>București, Drumul la Roșu numărul 1, Parter, Sector 6, 060604</p>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "paragraph",
+                "font": "var(--font-body--family)",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "hours": {
+              "type": "text",
+              "settings": {
+                "text": "<p><strong>Program</strong><br>L-V: 9:00 – 17:00</p>",
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "paragraph",
+                "font": "var(--font-body--family)",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "intro-heading",
+            "intro-body",
+            "contact-direct",
+            "showroom",
+            "hours"
+          ]
+        },
         "contact_form_UwiCkQ": {
           "type": "contact-form",
           "settings": {
@@ -107,11 +246,12 @@
         }
       },
       "block_order": [
+        "info",
         "contact_form_UwiCkQ"
       ],
       "name": "t:names.contact_form",
       "settings": {
-        "content_direction": "column",
+        "content_direction": "row",
         "vertical_on_mobile": true,
         "horizontal_alignment": "flex-start",
         "vertical_alignment": "center",

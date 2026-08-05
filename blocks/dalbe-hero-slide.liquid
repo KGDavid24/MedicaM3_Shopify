@@ -1,0 +1,110 @@
+{% liquid
+  assign block_index = section.blocks | find_index: 'id', block.id
+  assign img = block.settings.image
+  assign asset_filename = block.settings.placeholder_asset
+
+  assign loading = 'lazy'
+  if block_index == 0
+    assign loading = 'eager'
+  endif
+%}
+
+{% capture slide_content %}
+  <div class="dalbe-hero-slide__image-container">
+    {% if img != blank %}
+      {{
+        img
+        | image_url: width: 3840
+        | image_tag:
+          widths: '832, 1200, 1600, 1920, 2560, 3840',
+          class: 'dalbe-hero-slide__image',
+          loading: loading,
+          alt: block.settings.alt
+      }}
+    {% elsif asset_filename != blank %}
+      <img
+        src="{{ asset_filename | asset_url }}"
+        alt="{{ block.settings.alt }}"
+        class="dalbe-hero-slide__image"
+        loading="{{ loading }}"
+        width="1248"
+        height="439"
+      >
+    {% else %}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'dalbe-hero-slide__image' }}
+    {% endif %}
+  </div>
+  {% if block.settings.link != blank %}
+    <a
+      href="{{ block.settings.link }}"
+      class="dalbe-hero-slide__link"
+      aria-label="{{ block.settings.alt | default: 'View' }}"
+    ></a>
+  {% endif %}
+{% endcapture %}
+
+{% render 'slideshow-slide',
+  index: block_index,
+  children: slide_content,
+  attributes: block.shopify_attributes,
+  navigate_to_slide: false
+%}
+
+{% stylesheet %}
+  .dalbe-hero-slide__image-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .dalbe-hero-slide__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* dalbe: the slide box's own aspect ratio is now derived from these
+       images' exact native ratio (1248x439 — see dalbe-hero-slideshow.liquid
+       and dalbe-category-nav.liquid), so cover fills it with no meaningful
+       cropping — just enough to absorb sub-pixel rounding, unlike contain
+       which would risk a hairline gap at the edge from that same rounding. */
+    object-fit: cover;
+    object-position: center center;
+  }
+
+  .dalbe-hero-slide__link {
+    position: absolute;
+    inset: 0;
+    z-index: var(--layer-flat);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Slide",
+  "tag": null,
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "placeholder_asset",
+      "label": "Placeholder asset filename",
+      "info": "Used when no image is picked above. Filename of an image already in the theme's assets folder."
+    },
+    {
+      "type": "text",
+      "id": "alt",
+      "label": "Alt text"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link"
+    }
+  ]
+}
+{% endschema %}

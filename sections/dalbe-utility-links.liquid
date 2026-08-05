@@ -1,0 +1,234 @@
+{%- doc -%}
+  A row of icon + label utility links (Catalog, Help Center, Courses, Articles, ...),
+  matching the promotional icon row on the source site's homepage. Each block falls
+  back to a bundled placeholder icon until a real image is uploaded.
+{%- enddoc -%}
+
+<div class="dalbe-utility-links-wrapper">
+  <div class="dalbe-utility-links">
+    {% for block in section.blocks %}
+      <a
+        href="{{ block.settings.link | default: '#' }}"
+        class="dalbe-utility-links__item"
+        aria-label="{{ block.settings.label }}"
+        {{ block.shopify_attributes }}
+      >
+        <span class="dalbe-utility-links__icon">
+          {% if block.settings.image %}
+            {{ block.settings.image | image_url: width: 400 | image_tag: loading: 'lazy', alt: block.settings.label }}
+          {% elsif block.settings.placeholder_asset != blank %}
+            <img
+              src="{{ block.settings.placeholder_asset | asset_url }}"
+              alt="{{ block.settings.label }}"
+              loading="lazy"
+            >
+          {% endif %}
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+{% stylesheet %}
+  /* dalbe: this section's right edge needs to match the hero slideshow's
+     right edge exactly (see dalbe-hero-slideshow.liquid). Both used to rely
+     on Horizon's stock %-based page-width grid and lined up fine — but the
+     hero now computes its own margin with 100vw instead of a bare 100%
+     (necessary there because that value is reused in a height calc(), where
+     bare % resolves against the wrong axis — see that file's notes), which
+     leaves a several-px rounding gap against anything still using the
+     stock %-based version. Recomputing the same vw-based expression here
+     keeps this section's edge pixel-identical to the hero's at any
+     viewport width, instead of two formulas that merely resolve close to
+     each other. */
+  @media screen and (min-width: 990px) {
+    .dalbe-utility-links-section.section--page-width {
+      --dalbe-page-margin-offset: max(
+        var(--page-margin),
+        calc((100vw - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--page-margin) * 2))) / 2)
+      );
+      grid-template-columns:
+        var(--dalbe-page-margin-offset)
+        min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--dalbe-page-margin-offset) * 2))
+        var(--dalbe-page-margin-offset);
+    }
+  }
+
+  /* The wrapper handles the full-bleed gray background */
+  .dalbe-utility-links-wrapper {
+    position: relative;
+    padding-block: 32px; /* Gray space above and below the white bar */
+  }
+
+  .dalbe-utility-links-wrapper::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    background-color: #f5f5f5; /* Matches the hero section */
+    z-index: -1;
+  }
+
+  /* The inner container is the continuous white bar */
+  .dalbe-utility-links {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    background-color: #ffffff; /* Continuous white background */
+    border-radius: 4px;
+    /* Gap is removed so the items sit flush against each other */
+  }
+
+  .dalbe-utility-links__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    flex: 1 1 0; /* Ensures all items take up equal space, stretching to fill
+      the full page-width column — this bar's right edge needs to match the
+      hero slideshow's right edge exactly (see dalbe-hero-slideshow.liquid),
+      which fills its own column edge-to-edge, so this can't cap out short
+      of the column's actual width the way a fixed max-width would. */
+    padding: 24px 16px; /* Spacing inside the continuous white bar */
+    position: relative;
+  }
+
+  /* Thin separator lines positioned exactly on the flush right edge */
+  @media screen and (min-width: 750px) {
+    .dalbe-utility-links__item:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: 0; /* Flush to the right edge since they touch */
+      top: 20%;
+      height: 60%;
+      width: 1px;
+      background-color: #eaeaea; 
+    }
+  }
+
+  .dalbe-utility-links__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .dalbe-utility-links__icon img {
+    width: 100%;
+    height: auto;
+    max-height: 85px;
+    object-fit: contain;
+  }
+
+  @media screen and (max-width: 749px) {
+    .dalbe-utility-links-wrapper {
+      padding-block: 16px;
+    }
+    
+    .dalbe-utility-links {
+      justify-content: center;
+    }
+
+    .dalbe-utility-links__item {
+      flex: 1 1 40%;
+      max-width: 200px;
+    }
+    
+    /* Hide the lines on mobile so they don't look messy when stacked */
+    .dalbe-utility-links__item::after {
+      display: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Utility links",
+  "tag": "div",
+  "class": "dalbe-utility-links-section section section--page-width",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "icon_link",
+      "name": "Icon link",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Icon",
+          "info": "Optional — overrides the placeholder icon below once uploaded."
+        },
+        {
+          "type": "text",
+          "id": "placeholder_asset",
+          "label": "Placeholder icon filename",
+          "info": "Bundled theme asset shown until a real Icon image is uploaded above."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "info": "Used for accessibility and SEO even if hidden visually."
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Utility links",
+      "blocks": [
+        {
+          "type": "icon_link",
+          "settings": {
+            "placeholder_asset": "dalbe-utility-catalog.webp",
+            "label": "Catalog produse",
+            "link": "/collections/placeholder"
+          }
+        },
+        {
+          "type": "icon_link",
+          "settings": {
+            "placeholder_asset": "dalbe-utility-help.webp",
+            "label": "Help Center",
+            "link": "/collections/placeholder"
+          }
+        },
+        {
+          "type": "icon_link",
+          "settings": {
+            "placeholder_asset": "dalbe-utility-cursuri.webp",
+            "label": "Portal cursuri",
+            "link": "/collections/placeholder"
+          }
+        },
+        {
+          "type": "icon_link",
+          "settings": {
+            "placeholder_asset": "dalbe-utility-articole.webp",
+            "label": "Articole",
+            "link": "/collections/placeholder"
+          }
+        },
+        {
+          "type": "icon_link",
+          "settings": {
+            "placeholder_asset": "dalbe-utility-anestezice.webp",
+            "label": "Anestezice",
+            "link": "/collections/placeholder"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

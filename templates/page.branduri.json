@@ -1,0 +1,753 @@
+{
+  "sections": {
+    "main": {
+      "type": "dalbe-brand-directory",
+      "blocks": {
+        "brand_3shape": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "3SHAPE"
+          }
+        },
+        "brand_abes": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Abes"
+          }
+        },
+        "brand_acteon": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Acteon"
+          }
+        },
+        "brand_ahl": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "AHL"
+          }
+        },
+        "brand_anqing_yipak": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "ANQING YIPAK"
+          }
+        },
+        "brand_apapro": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "APAPRO"
+          }
+        },
+        "brand_asiga": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Asiga"
+          }
+        },
+        "brand_avalon_biomed": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "AVALON BIOMED"
+          }
+        },
+        "brand_bestdent": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "BestDent"
+          }
+        },
+        "brand_beyond_dental": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "BEYOND DENTAL"
+          }
+        },
+        "brand_bg_light_pro_ltd": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "BG LIGHT PRO LTD"
+          }
+        },
+        "brand_bionova": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "BIONOVA"
+          }
+        },
+        "brand_bondent": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Bondent"
+          }
+        },
+        "brand_brighttonix_medical": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "BrightTonix Medical"
+          }
+        },
+        "brand_calipso": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Calipso"
+          }
+        },
+        "brand_carestream": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Carestream"
+          }
+        },
+        "brand_carlo_de_giorgi": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Carlo De Giorgi"
+          }
+        },
+        "brand_cattani": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "CATTANI"
+          }
+        },
+        "brand_centrix": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Centrix"
+          }
+        },
+        "brand_cerkamed": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "CERKAMED"
+          }
+        },
+        "brand_china": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "China"
+          }
+        },
+        "brand_ck_dental": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "CK Dental"
+          }
+        },
+        "brand_coltene": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Coltene"
+          }
+        },
+        "brand_coltene_whaledent_gmbh_roeko": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "COLTENE/WHALEDENT GMBH - ROEKO"
+          }
+        },
+        "brand_denco": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Denco"
+          }
+        },
+        "brand_denstar": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "DENSTAR"
+          }
+        },
+        "brand_dentaflux": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "DentaFlux"
+          }
+        },
+        "brand_dentsply_detrey": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "DENTSPLY DETREY"
+          }
+        },
+        "brand_dentsply_sirona": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Dentsply Sirona"
+          }
+        },
+        "brand_directa_dental_group": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Directa Dental Group"
+          }
+        },
+        "brand_dmg": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "DMG"
+          }
+        },
+        "brand_durr_dental": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Durr Dental"
+          }
+        },
+        "brand_ems": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "EMS"
+          }
+        },
+        "brand_esay": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "ESAY"
+          }
+        },
+        "brand_esco_medical": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Esco Medical"
+          }
+        },
+        "brand_euronda": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "EURONDA"
+          }
+        },
+        "brand_exocad": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "EXOCAD"
+          }
+        },
+        "brand_faro": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Faro"
+          }
+        },
+        "brand_galbiati": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Galbiati"
+          }
+        },
+        "brand_galit": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Galit"
+          }
+        },
+        "brand_gc": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "GC"
+          }
+        },
+        "brand_geldis": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Geldis"
+          }
+        },
+        "brand_hahnenkratt": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "HAHNENKRATT"
+          }
+        },
+        "brand_heka": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "HEKA"
+          }
+        },
+        "brand_hulaser": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "HULASER"
+          }
+        },
+        "brand_itena_clinical": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "ITENA CLINICAL"
+          }
+        },
+        "brand_ivoclar": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "IVOCLAR"
+          }
+        },
+        "brand_kenda_dental_polishers": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "KENDA DENTAL POLISHERS"
+          }
+        },
+        "brand_kerr": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Kerr"
+          }
+        },
+        "brand_klintensiv": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Klintensiv"
+          }
+        },
+        "brand_larident": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "LARIDENT"
+          }
+        },
+        "brand_luxcryl": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "LUXCRYL"
+          }
+        },
+        "brand_maarc": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "MAARC"
+          }
+        },
+        "brand_medency_italia": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Medency Italia"
+          }
+        },
+        "brand_medi_stock": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Medi Stock"
+          }
+        },
+        "brand_medicam3": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "MedicaM3"
+          }
+        },
+        "brand_medicom_healthcare": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "MEDICOM HEALTHCARE"
+          }
+        },
+        "brand_medisept": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "MEDISEPT"
+          }
+        },
+        "brand_medismart": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Medismart"
+          }
+        },
+        "brand_medit": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Medit"
+          }
+        },
+        "brand_melag": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Melag"
+          }
+        },
+        "brand_melaseal": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "MELAseal"
+          }
+        },
+        "brand_melatherm": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "MELAtherm"
+          }
+        },
+        "brand_mestra": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Mestra"
+          }
+        },
+        "brand_meta": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Meta"
+          }
+        },
+        "brand_metasys": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Metasys"
+          }
+        },
+        "brand_midas": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Midas"
+          }
+        },
+        "brand_mindray": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Mindray"
+          }
+        },
+        "brand_miorita": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Miorita"
+          }
+        },
+        "brand_mk_dent": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "MK-dent"
+          }
+        },
+        "brand_modjaw": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Modjaw"
+          }
+        },
+        "brand_morita": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Morita"
+          }
+        },
+        "brand_neodent": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "NEODENT"
+          }
+        },
+        "brand_neolix": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Neolix"
+          }
+        },
+        "brand_nic_tone": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "nic tone"
+          }
+        },
+        "brand_nordiska_dental": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "NORDISKA DENTAL"
+          }
+        },
+        "brand_opera_system": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "OPERA SYSTEM"
+          }
+        },
+        "brand_panda": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Panda"
+          }
+        },
+        "brand_pentron": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "PENTRON"
+          }
+        },
+        "brand_pentron_clinical_technologies": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "PENTRON CLINICAL TECHNOLOGIES"
+          }
+        },
+        "brand_philips": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Philips"
+          }
+        },
+        "brand_prima": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Prima"
+          }
+        },
+        "brand_resorba": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "RESORBA"
+          }
+        },
+        "brand_riton": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Riton"
+          }
+        },
+        "brand_ritter": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Ritter"
+          }
+        },
+        "brand_rtd": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "RTD"
+          }
+        },
+        "brand_sanctuary": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Sanctuary"
+          }
+        },
+        "brand_schulke_mayr": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "SCHULKE & MAYR"
+          }
+        },
+        "brand_serix": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Serix"
+          }
+        },
+        "brand_shenpaz": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Shenpaz"
+          }
+        },
+        "brand_smeg": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Smeg"
+          }
+        },
+        "brand_specore": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Specore"
+          }
+        },
+        "brand_tethys": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Tethys"
+          }
+        },
+        "brand_tribest_dental": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "TRIBEST DENTAL"
+          }
+        },
+        "brand_ultradent": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Ultradent"
+          }
+        },
+        "brand_uniformation": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "UniFormation"
+          }
+        },
+        "brand_vdw": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "VDW"
+          }
+        },
+        "brand_vhf": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "vhf"
+          }
+        },
+        "brand_w_h": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "W&H"
+          }
+        },
+        "brand_wj_medical": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "WJ Medical"
+          }
+        },
+        "brand_woodpecker": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Woodpecker"
+          }
+        },
+        "brand_zebris": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Zebris"
+          }
+        },
+        "brand_zhermack_spa": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "ZHERMACK SPA"
+          }
+        },
+        "brand_zilfor": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "ZILFOR"
+          }
+        },
+        "brand_zimmer_biomet": {
+          "type": "dalbe-brand-entry",
+          "settings": {
+            "name": "Zimmer Biomet"
+          }
+        }
+      },
+      "block_order": [
+        "brand_3shape",
+        "brand_abes",
+        "brand_acteon",
+        "brand_ahl",
+        "brand_anqing_yipak",
+        "brand_apapro",
+        "brand_asiga",
+        "brand_avalon_biomed",
+        "brand_bestdent",
+        "brand_beyond_dental",
+        "brand_bg_light_pro_ltd",
+        "brand_bionova",
+        "brand_bondent",
+        "brand_brighttonix_medical",
+        "brand_calipso",
+        "brand_carestream",
+        "brand_carlo_de_giorgi",
+        "brand_cattani",
+        "brand_centrix",
+        "brand_cerkamed",
+        "brand_china",
+        "brand_ck_dental",
+        "brand_coltene",
+        "brand_coltene_whaledent_gmbh_roeko",
+        "brand_denco",
+        "brand_denstar",
+        "brand_dentaflux",
+        "brand_dentsply_detrey",
+        "brand_dentsply_sirona",
+        "brand_directa_dental_group",
+        "brand_dmg",
+        "brand_durr_dental",
+        "brand_ems",
+        "brand_esay",
+        "brand_esco_medical",
+        "brand_euronda",
+        "brand_exocad",
+        "brand_faro",
+        "brand_galbiati",
+        "brand_galit",
+        "brand_gc",
+        "brand_geldis",
+        "brand_hahnenkratt",
+        "brand_heka",
+        "brand_hulaser",
+        "brand_itena_clinical",
+        "brand_ivoclar",
+        "brand_kenda_dental_polishers",
+        "brand_kerr",
+        "brand_klintensiv",
+        "brand_larident",
+        "brand_luxcryl",
+        "brand_maarc",
+        "brand_medency_italia",
+        "brand_medi_stock",
+        "brand_medicam3",
+        "brand_medicom_healthcare",
+        "brand_medisept",
+        "brand_medismart",
+        "brand_medit",
+        "brand_melag",
+        "brand_melaseal",
+        "brand_melatherm",
+        "brand_mestra",
+        "brand_meta",
+        "brand_metasys",
+        "brand_midas",
+        "brand_mindray",
+        "brand_miorita",
+        "brand_mk_dent",
+        "brand_modjaw",
+        "brand_morita",
+        "brand_neodent",
+        "brand_neolix",
+        "brand_nic_tone",
+        "brand_nordiska_dental",
+        "brand_opera_system",
+        "brand_panda",
+        "brand_pentron",
+        "brand_pentron_clinical_technologies",
+        "brand_philips",
+        "brand_prima",
+        "brand_resorba",
+        "brand_riton",
+        "brand_ritter",
+        "brand_rtd",
+        "brand_sanctuary",
+        "brand_schulke_mayr",
+        "brand_serix",
+        "brand_shenpaz",
+        "brand_smeg",
+        "brand_specore",
+        "brand_tethys",
+        "brand_tribest_dental",
+        "brand_ultradent",
+        "brand_uniformation",
+        "brand_vdw",
+        "brand_vhf",
+        "brand_w_h",
+        "brand_wj_medical",
+        "brand_woodpecker",
+        "brand_zebris",
+        "brand_zhermack_spa",
+        "brand_zilfor",
+        "brand_zimmer_biomet"
+      ],
+      "settings": {
+        "heading": "Branduri",
+        "data_source": "auto"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
