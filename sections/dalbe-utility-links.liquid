@@ -1,30 +1,37 @@
 {%- doc -%}
-  A row of icon + label utility links (Catalog, Help Center, Courses, Articles, ...),
-  matching the promotional icon row on the source site's homepage. Each block falls
-  back to a bundled placeholder icon until a real image is uploaded.
+  A row of icon + title + subtitle trust badges ("Performanță", "Livrare
+  Rapidă", ...), matching the USP bar on medicam3.ro's own homepage
+  (an Elementor "eael-infobox" widget row). These are informational value
+  props, not navigation — unlike an earlier version of this section, items
+  are NOT wrapped in a link; medicam3.ro's own version isn't clickable
+  either. Each block falls back to a bundled placeholder icon until a real
+  image is uploaded.
 {%- enddoc -%}
 
 <div class="dalbe-utility-links-wrapper">
   <div class="dalbe-utility-links">
     {% for block in section.blocks %}
-      <a
-        href="{{ block.settings.link | default: '#' }}"
-        class="dalbe-utility-links__item"
-        aria-label="{{ block.settings.label }}"
-        {{ block.shopify_attributes }}
-      >
+      <div class="dalbe-utility-links__item" {{ block.shopify_attributes }}>
         <span class="dalbe-utility-links__icon">
           {% if block.settings.image %}
-            {{ block.settings.image | image_url: width: 400 | image_tag: loading: 'lazy', alt: block.settings.label }}
+            {{ block.settings.image | image_url: width: 200 | image_tag: loading: 'lazy', alt: block.settings.title }}
           {% elsif block.settings.placeholder_asset != blank %}
             <img
               src="{{ block.settings.placeholder_asset | asset_url }}"
-              alt="{{ block.settings.label }}"
+              alt="{{ block.settings.title }}"
               loading="lazy"
             >
           {% endif %}
         </span>
-      </a>
+        <span class="dalbe-utility-links__text">
+          {% if block.settings.title != blank %}
+            <span class="dalbe-utility-links__title">{{ block.settings.title }}</span>
+          {% endif %}
+          {% if block.settings.subtitle != blank %}
+            <span class="dalbe-utility-links__subtitle">{{ block.settings.subtitle }}</span>
+          {% endif %}
+        </span>
+      </div>
     {% endfor %}
   </div>
 </div>
@@ -88,13 +95,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    text-decoration: none;
+    gap: var(--gap-sm);
     flex: 1 1 0; /* Ensures all items take up equal space, stretching to fill
       the full page-width column — this bar's right edge needs to match the
       hero slideshow's right edge exactly (see dalbe-hero-slideshow.liquid),
       which fills its own column edge-to-edge, so this can't cap out short
       of the column's actual width the way a fixed max-width would. */
-    padding: 24px 16px; /* Spacing inside the continuous white bar */
+    padding: 20px 16px; /* Spacing inside the continuous white bar */
     position: relative;
   }
 
@@ -107,29 +114,50 @@
       top: 20%;
       height: 60%;
       width: 1px;
-      background-color: #eaeaea; 
+      background-color: #eaeaea;
     }
   }
 
   .dalbe-utility-links__icon {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
+    width: 44px;
+    height: 44px;
   }
 
   .dalbe-utility-links__icon img {
     width: 100%;
-    height: auto;
-    max-height: 85px;
+    height: 100%;
     object-fit: contain;
+  }
+
+  .dalbe-utility-links__text {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    min-width: 0;
+  }
+
+  .dalbe-utility-links__title {
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: var(--dalbe-navy);
+    white-space: nowrap;
+  }
+
+  .dalbe-utility-links__subtitle {
+    font-size: 0.8125rem;
+    color: var(--color-foreground-secondary, #666666);
+    white-space: nowrap;
   }
 
   @media screen and (max-width: 749px) {
     .dalbe-utility-links-wrapper {
       padding-block: 16px;
     }
-    
+
     .dalbe-utility-links {
       justify-content: center;
     }
@@ -138,7 +166,7 @@
       flex: 1 1 40%;
       max-width: 200px;
     }
-    
+
     /* Hide the lines on mobile so they don't look messy when stacked */
     .dalbe-utility-links__item::after {
       display: none;
@@ -148,14 +176,14 @@
 
 {% schema %}
 {
-  "name": "Utility links",
+  "name": "USP bar",
   "tag": "div",
   "class": "dalbe-utility-links-section section section--page-width",
   "settings": [],
   "blocks": [
     {
       "type": "icon_link",
-      "name": "Icon link",
+      "name": "USP item",
       "settings": [
         {
           "type": "image_picker",
@@ -171,60 +199,51 @@
         },
         {
           "type": "text",
-          "id": "label",
-          "label": "Label",
-          "info": "Used for accessibility and SEO even if hidden visually."
+          "id": "title",
+          "label": "Title"
         },
         {
-          "type": "url",
-          "id": "link",
-          "label": "Link"
+          "type": "text",
+          "id": "subtitle",
+          "label": "Subtitle"
         }
       ]
     }
   ],
   "presets": [
     {
-      "name": "Utility links",
+      "name": "USP bar",
       "blocks": [
         {
           "type": "icon_link",
           "settings": {
-            "placeholder_asset": "dalbe-utility-catalog.webp",
-            "label": "Catalog produse",
-            "link": "/collections/placeholder"
+            "placeholder_asset": "dalbe-usp-performanta.svg",
+            "title": "Performanță",
+            "subtitle": "Colaborăm cu producători de top"
           }
         },
         {
           "type": "icon_link",
           "settings": {
-            "placeholder_asset": "dalbe-utility-help.webp",
-            "label": "Help Center",
-            "link": "/collections/placeholder"
+            "placeholder_asset": "dalbe-usp-livrare-rapida.svg",
+            "title": "Livrare Rapidă",
+            "subtitle": "Ambalare securizată"
           }
         },
         {
           "type": "icon_link",
           "settings": {
-            "placeholder_asset": "dalbe-utility-cursuri.webp",
-            "label": "Portal cursuri",
-            "link": "/collections/placeholder"
+            "placeholder_asset": "dalbe-usp-oferte-exclusive.svg",
+            "title": "Oferte Exclusive",
+            "subtitle": "Reduceri speciale"
           }
         },
         {
           "type": "icon_link",
           "settings": {
-            "placeholder_asset": "dalbe-utility-articole.webp",
-            "label": "Articole",
-            "link": "/collections/placeholder"
-          }
-        },
-        {
-          "type": "icon_link",
-          "settings": {
-            "placeholder_asset": "dalbe-utility-anestezice.webp",
-            "label": "Anestezice",
-            "link": "/collections/placeholder"
+            "placeholder_asset": "dalbe-usp-consultanta.svg",
+            "title": "Consultanță de Specialitate",
+            "subtitle": "Consiliere gratuită"
           }
         }
       ]

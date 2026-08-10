@@ -1,13 +1,20 @@
 {%- doc -%}
   A numbered "how we help" process list. One component, two display modes
-  set via display_mode: `compact` (icon + title + one-line teaser, a row of
-  tiles) and `detailed` (numbered badge + title + full body + CTA, a
-  stacked list). Instantiated twice on the Clinica la cheie page, matching
-  the source site's own compact-overview-then-detailed-list structure —
-  the same block/section code renders both, not two forked
-  implementations; only the block content differs between the two
-  instances.
+  set via display_mode: `compact` (numbered badge + title + one-line
+  teaser, a row of tiles) and `detailed` (photo + numbered badge + title +
+  full body + CTA(s), alternating photo side by position). Instantiated
+  twice on the Clinica la cheie page, matching the source site's own
+  compact-overview-then-detailed-list structure — the same block/section
+  code renders both, not two forked implementations; only the block
+  content differs between the two instances. The numbered badge (not the
+  icon artwork the compact tiles used to show) is what the real site
+  actually uses in both sections — its "icons" are just gradient number
+  badges, not concept icons per step.
 {%- enddoc -%}
+
+{% if section.settings.display_mode == 'detailed' %}
+  <script src="{{ 'dalbe-reveal-on-scroll.js' | asset_url }}" type="module"></script>
+{% endif %}
 
 <div class="dalbe-process-steps dalbe-process-steps--{{ section.settings.display_mode }} section section--page-width">
   {% if section.settings.heading != blank %}
@@ -35,44 +42,68 @@
     list-style: none;
   }
 
-  /* Compact: row of icon tiles */
+  /* Compact: row of numbered tiles */
   .dalbe-process-steps--compact .dalbe-process-steps__list {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
+    align-items: stretch;
     gap: var(--gap-lg);
   }
 
+  /* dalbe: Shopify wraps every block in its own .shopify-block div (for
+     theme-editor drag/drop) — that wrapper, not our <li>, is the actual
+     grid item that stretches to the row height. Without this, the <li>
+     card inside it just sizes to its own content and rows go uneven. */
+  .dalbe-process-steps--compact .shopify-block {
+    height: 100%;
+  }
+
   .dalbe-process-steps--compact .dalbe-process-steps__item {
+    display: block;
+    height: 100%;
+    background: var(--dalbe-navy);
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: 0 14px 28px -8px rgba(19, 31, 93, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .dalbe-process-steps--compact .dalbe-process-steps__item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 32px -8px rgba(19, 31, 93, 0.4);
+  }
+
+  .dalbe-process-steps--compact .dalbe-process-steps__item-content {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: var(--gap-xs);
-  }
-
-  .dalbe-process-steps__icon {
-    width: 56px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .dalbe-process-steps__icon img {
-    width: 100%;
+    align-items: flex-start;
+    text-align: left;
     height: 100%;
-    object-fit: contain;
+    gap: var(--gap-sm);
+  }
+
+  .dalbe-process-steps--compact .dalbe-process-steps__number {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: none;
   }
 
   .dalbe-process-steps--compact .dalbe-process-steps__title {
-    font-size: 1rem;
+    font-size: 1.0625rem;
+    line-height: 1.35;
+    color: #ffffff;
     margin: 0;
   }
 
   .dalbe-process-steps__teaser {
     margin: 0;
-    color: var(--color-foreground-secondary, #666666);
-    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1rem;
+    line-height: 1.5;
   }
 
   @media screen and (max-width: 989px) {
@@ -81,19 +112,52 @@
     }
   }
 
-  /* Detailed: stacked numbered list */
+  /* Detailed: alternating photo + text rows */
   .dalbe-process-steps--detailed .dalbe-process-steps__list {
     display: flex;
     flex-direction: column;
-    gap: var(--gap-2xl);
-    max-width: 48rem;
-    margin-inline: auto;
+    gap: var(--gap-3xl, 64px);
   }
 
   .dalbe-process-steps--detailed .dalbe-process-steps__item {
     display: grid;
-    grid-template-columns: 48px 1fr;
-    gap: var(--gap-lg);
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .dalbe-process-steps--detailed .dalbe-process-steps__item--image-right .dalbe-process-steps__media {
+    order: 1;
+  }
+
+  .dalbe-process-steps__media {
+    overflow: hidden;
+  }
+
+  /* Square off the edge that touches the text panel so the photo and
+     the border form one continuous outline, no seam — border on the
+     three outer edges only, none on the edge touching the text panel
+     (which already has its own border there). */
+  .dalbe-process-steps--detailed .dalbe-process-steps__item--image-left .dalbe-process-steps__media {
+    border-radius: 20px 0 0 20px;
+    border-block: 2px solid var(--dalbe-navy);
+    border-inline-start: 2px solid var(--dalbe-navy);
+    box-sizing: border-box;
+  }
+
+  .dalbe-process-steps--detailed .dalbe-process-steps__item--image-right .dalbe-process-steps__media {
+    border-radius: 0 20px 20px 0;
+    border-block: 2px solid var(--dalbe-navy);
+    border-inline-end: 2px solid var(--dalbe-navy);
+    box-sizing: border-box;
+  }
+
+  .dalbe-process-steps__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
   }
 
   .dalbe-process-steps__number {
@@ -107,6 +171,27 @@
     color: #ffffff;
     font-weight: 700;
     font-size: 1.125rem;
+    margin-block-end: var(--gap-sm);
+  }
+
+  .dalbe-process-steps--detailed .dalbe-process-steps__item-content {
+    border-block: 2px solid var(--dalbe-navy);
+    padding: 32px;
+    box-sizing: border-box;
+  }
+
+  /* Text panel border picks up exactly where the photo's rounded corner
+     ends — no left/right border or radius on the side touching the
+     image, so the two halves read as one continuous frame. Mirrors
+     depending on which side the image is on. */
+  .dalbe-process-steps--detailed .dalbe-process-steps__item--image-left .dalbe-process-steps__item-content {
+    border-inline-end: 2px solid var(--dalbe-navy);
+    border-radius: 0 20px 20px 0;
+  }
+
+  .dalbe-process-steps--detailed .dalbe-process-steps__item--image-right .dalbe-process-steps__item-content {
+    border-inline-start: 2px solid var(--dalbe-navy);
+    border-radius: 20px 0 0 20px;
   }
 
   .dalbe-process-steps--detailed .dalbe-process-steps__title {
@@ -115,15 +200,109 @@
 
   .dalbe-process-steps__body {
     color: var(--dalbe-text, #222222);
+    font-size: 1.125rem;
+    line-height: 1.65;
   }
 
   .dalbe-process-steps__body p {
     margin: 0 0 var(--margin-sm);
   }
 
-  .dalbe-process-steps__cta {
-    display: inline-block;
+  .dalbe-process-steps__cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
     margin-block-start: var(--margin-sm);
+  }
+
+  .dalbe-process-steps__cta {
+    padding-block: 16px;
+    padding-inline: 32px;
+    font-size: 1.0625rem;
+  }
+
+  /* Scroll-reveal, ported from animated-reveal-cards.md — see
+     assets/dalbe-reveal-on-scroll.js for the behavior. The wrapper is
+     display:contents so it's invisible to the grid layout above; only
+     .media/.item-content (the actual grid items) animate. */
+  .dalbe-process-steps__reveal {
+    display: contents;
+  }
+
+  .dalbe-process-steps__media[data-reveal-armed],
+  .dalbe-process-steps__item-content[data-reveal-armed] {
+    opacity: 0;
+  }
+
+  [data-reveal-active] {
+    animation-duration: 1.2s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+
+  [data-reveal-active][data-reveal-direction='left'] {
+    animation-name: dalbe-reveal-left;
+  }
+
+  [data-reveal-active][data-reveal-direction='right'] {
+    animation-name: dalbe-reveal-right;
+  }
+
+  @keyframes dalbe-reveal-left {
+    from {
+      opacity: 0;
+      transform: translateX(-64px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes dalbe-reveal-right {
+    from {
+      opacity: 0;
+      transform: translateX(64px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dalbe-process-steps__media[data-reveal-armed],
+    .dalbe-process-steps__item-content[data-reveal-armed] {
+      opacity: 1;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .dalbe-process-steps--detailed .dalbe-process-steps__item {
+      grid-template-columns: 1fr;
+    }
+
+    .dalbe-process-steps--detailed .dalbe-process-steps__item--image-right .dalbe-process-steps__media {
+      order: 0;
+    }
+
+    .dalbe-process-steps--detailed .dalbe-process-steps__item--image-left .dalbe-process-steps__media,
+    .dalbe-process-steps--detailed .dalbe-process-steps__item--image-right .dalbe-process-steps__media {
+      border-radius: 20px 20px 0 0;
+      border: 2px solid var(--dalbe-navy);
+      border-block-end: none;
+    }
+
+    /* Stacked layout: image is always on top now regardless of
+       left/right, so the text panel's border/radius follows suit —
+       full border minus the top edge (touching the image), rounded
+       only at the bottom. */
+    .dalbe-process-steps--detailed .dalbe-process-steps__item--image-left .dalbe-process-steps__item-content,
+    .dalbe-process-steps--detailed .dalbe-process-steps__item--image-right .dalbe-process-steps__item-content {
+      border: 2px solid var(--dalbe-navy);
+      border-block-start: none;
+      border-radius: 0 0 20px 20px;
+    }
   }
 {% endstylesheet %}
 

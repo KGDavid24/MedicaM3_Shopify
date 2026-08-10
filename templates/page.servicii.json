@@ -38,7 +38,7 @@
         "page-content"
       ],
       "settings": {
-        "sidebar_gap": 48,
+        "sidebar_gap": 80,
         "content_direction": "column",
         "gap": 32,
         "background_color": "{{ settings.color_palette.background }}",

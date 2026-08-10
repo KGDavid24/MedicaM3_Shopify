@@ -9,7 +9,7 @@
   Deliberately mirrors main-page.liquid's block-driven content column
   (title + page-content blocks via {% content_for 'blocks' %}) so page body
   copy stays editable in Shopify Admin exactly like a normal page, and uses
-  Horizon's simpler page-width-content width constraint rather than the
+  Horizon's simpler page-width-normal width constraint rather than the
   vw-based alignment formulas the homepage sections use — this page has no
   cross-section edge-alignment requirement.
 {%- enddoc -%}
@@ -21,21 +21,30 @@
 %}
 
 <div class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"></div>
-<div class="section page-width-content{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}">
+<div class="section page-width-normal{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}">
   <div
-    class="dalbe-page-sidebar__row"
-    style="--dalbe-page-sidebar-gap: {{ section.settings.sidebar_gap }}px;"
+    class="dalbe-page-sidebar__row spacing-style"
+    style="
+      --dalbe-page-sidebar-gap: {{ section.settings.sidebar_gap }}px;
+      {% render 'spacing-style', settings: section.settings %}
+    "
   >
     <nav
       class="dalbe-page-sidebar__nav"
       aria-label="{{ 'accessibility.secondary_navigation' | t | default: 'Ghid client' }}"
     >
+      <span class="dalbe-page-sidebar__nav-title">Ghid Client</span>
       {% render 'dalbe-sidebar-nav-list' %}
+
+      <div class="dalbe-page-sidebar__contact-card">
+        <p class="dalbe-page-sidebar__contact-card-title">Ai nevoie de ajutor?</p>
+        <p class="dalbe-page-sidebar__contact-card-text">Echipa noastră îți răspunde rapid la orice întrebare.</p>
+        <a href="tel:+40376509140" class="dalbe-page-sidebar__contact-card-link">+40 376 509 140</a>
+      </div>
     </nav>
 
     <div
       class="
-        spacing-style
         layout-panel-flex
         layout-panel-flex--column
         section-content-wrapper
@@ -44,7 +53,6 @@
       "
       style="
         {% render 'layout-panel-style', settings: section.settings %}
-        {% render 'spacing-style', settings: section.settings %}
       "
     >
       {% content_for 'blocks' %}
@@ -64,9 +72,136 @@
     width: 280px;
   }
 
+  .dalbe-page-sidebar__nav-title {
+    display: block;
+    margin: 0 0 16px;
+    padding: 10px 16px;
+    background: var(--dalbe-navy);
+    border-radius: var(--style-border-radius-buttons, 4px);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #ffffff;
+  }
+
+  .dalbe-page-sidebar__contact-card {
+    margin-top: 24px;
+    padding: 20px;
+    background: rgb(19 31 93 / 0.06);
+    border-radius: var(--style-border-radius-cards, 12px);
+  }
+
+  .dalbe-page-sidebar__contact-card-title {
+    margin: 0 0 4px;
+    font-weight: 700;
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-page-sidebar__contact-card-text {
+    margin: 0 0 12px;
+    font-size: 0.875rem;
+    color: var(--dalbe-text, #222222);
+  }
+
+  .dalbe-page-sidebar__contact-card-link {
+    display: block;
+    font-weight: 700;
+    color: var(--dalbe-navy);
+    text-decoration: none;
+  }
+
+  .dalbe-page-sidebar__contact-card-link:hover {
+    text-decoration: underline;
+  }
+
   .dalbe-page-sidebar__content {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  /* dalbe: restyles the stock accordion markup (native <details>/<summary>,
+     see snippets/accordion-styles.liquid) used in these pages' body content
+     -- the theme default reads as a plain hairline-divider FAQ list with no
+     brand identity. Scoped to this content column rather than global so it
+     doesn't affect the accordion BLOCK elsewhere (e.g. a merchant-built FAQ
+     section), which should keep following its own block settings. */
+  .dalbe-page-sidebar__content .accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dalbe-page-sidebar__content .details {
+    background: var(--color-background);
+    border: 1px solid #e5e5e5;
+    border-radius: var(--style-border-radius-cards, 12px);
+    padding-inline: 24px;
+    transition: border-color 0.2s var(--animation-easing), background-color 0.2s var(--animation-easing);
+  }
+
+  .dalbe-page-sidebar__content .details[open] {
+    border-color: var(--dalbe-navy);
+    background: rgb(19 31 93 / 0.04);
+  }
+
+  .dalbe-page-sidebar__content .accordion .details__header {
+    padding-block: 22px;
+    gap: var(--gap-sm, 12px);
+    font-size: 1.1875rem;
+    font-weight: 700;
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-page-sidebar__content .details__header .svg-wrapper {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--dalbe-navy);
+    color: #ffffff;
+    transition: background-color 0.2s var(--animation-easing);
+  }
+
+  .dalbe-page-sidebar__content .details__header .svg-wrapper svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .dalbe-page-sidebar__content .details-content {
+    padding-block-end: 24px;
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--dalbe-text);
+  }
+
+  .dalbe-page-sidebar__content .details-content ul {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+  }
+
+  .dalbe-page-sidebar__content .details-content li {
+    margin-block-end: 10px;
+  }
+
+  .dalbe-page-sidebar__content .details-content li:last-child {
+    margin-block-end: 0;
+  }
+
+  .dalbe-page-sidebar__content .details-content blockquote {
+    margin: 16px 0 0;
+    padding: 16px 20px;
+    background: rgb(19 31 93 / 0.05);
+    border-inline-start: 3px solid var(--dalbe-navy);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .dalbe-page-sidebar__content .details-content blockquote p {
+    margin: 0;
+    color: var(--dalbe-navy);
   }
 
   @media screen and (max-width: 749px) {

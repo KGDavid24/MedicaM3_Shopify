@@ -9,8 +9,16 @@
       Settings -> Policies (Terms, Privacy, Refund, Shipping, Contact
       information, Legal notice), read from the generic `shop.policies`
       object — the same accessor blocks/footer-policy-list.liquid already
-      uses. These need zero theme code once Admin content exists; this
-      loop just picks up however many are actually filled in.
+      uses. This loop just picks up however many are actually filled in.
+
+      Labels are hardcoded per policy.url below (matched by real path, not
+      policy.type -- that Liquid property returns blank for shop policies,
+      confirmed empirically) rather than using policy.title, because title
+      is a Shopify-translated system string tied to the shop's admin
+      locale (English here), not user-editable text -- it would render
+      "Privacy policy" etc. regardless of the (Romanian) body content
+      pasted into each policy, which doesn't match the rest of this
+      Romanian-language site.
 
   No hover flyout, no accordion, no mobile-collapse JS — deliberately much
   simpler than dalbe-category-nav's sidebar, which is purpose-built for the
@@ -42,10 +50,29 @@
   {% endfor %}
 
   {% for policy in shop.policies %}
+    {% if policy != blank and policy.url contains 'shopifyReshowConsentBanner' %}
+      {% continue %}
+    {% endif %}
     {% if policy != blank %}
+      {% liquid
+        assign policy_label = policy.title
+        if policy.url contains 'privacy-policy'
+          assign policy_label = 'Politică de Confidențialitate'
+        elsif policy.url contains 'refund-policy'
+          assign policy_label = 'Politică de Retur'
+        elsif policy.url contains 'terms-of-service'
+          assign policy_label = 'Termeni și Condiții'
+        elsif policy.url contains 'shipping-policy'
+          assign policy_label = 'Comenzi și Livrare'
+        elsif policy.url contains 'contact-information'
+          assign policy_label = 'Informații de Contact'
+        elsif policy.url contains 'legal-notice'
+          assign policy_label = 'Notă Legală'
+        endif
+      %}
       <li class="dalbe-sidebar-nav-list__item">
         <a href="{{ policy.url }}" class="dalbe-sidebar-nav-list__link">
-          {{ policy.title | escape }}
+          {{ policy_label | escape }}
         </a>
       </li>
     {% endif %}

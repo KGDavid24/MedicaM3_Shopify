@@ -8,33 +8,52 @@
  * ------------------------------------------------------------
  */{
   "sections": {
+    "hero": {
+      "type": "hero",
+      "blocks": {
+        "text_1": {
+          "type": "text",
+          "settings": {
+            "text": "<h1>Articole - Informații de Sănătate de la Specialiști</h1>",
+            "type_preset": "custom",
+            "font_size": "2rem",
+            "text_color": "#ffffff",
+            "max_width": "none",
+            "padding-inline-start": 60,
+            "padding-inline-end": 60
+          }
+        },
+        "text_2": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Aici găsești articole medicale scrise de medicii și specialiștii clinicii Medicam3. Ne dorim să îți oferim informații clare, de încredere și ușor de înțeles despre o gamă largă de afecțiuni, tratamente și metode de prevenție.</p>",
+            "type_preset": "custom",
+            "font_size": "1.25rem",
+            "text_color": "#ffffff",
+            "max_width": "none",
+            "padding-inline-start": 60,
+            "padding-inline-end": 60
+          }
+        }
+      },
+      "block_order": ["text_1", "text_2"],
+      "settings": {
+        "horizontal_alignment_flex_direction_column": "center",
+        "gap": 16,
+        "section_width": "full-width",
+        "section_height": "auto",
+        "padding-block-start": 64,
+        "padding-block-end": 64,
+        "media_type_1": "image",
+        "image_1": "shopify://shop_images/dalbe-articole-hero.webp",
+        "toggle_overlay": true,
+        "overlay_style": "solid",
+        "overlay_color": "#131f5da8"
+      }
+    },
     "main": {
       "type": "main-blog",
       "blocks": {
-        "title": {
-          "type": "text",
-          "name": "t:names.title",
-          "settings": {
-            "text": "<h1>{{ closest.blog.title }}</h1>",
-            "width": "fit-content",
-            "max_width": "narrow",
-            "alignment": "left",
-            "type_preset": "h2",
-            "font": "var(--font-body--family)",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 48,
-            "padding-block-end": 48,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
-        },
         "static-blog-post-card": {
           "type": "_blog-post-card",
           "static": true,
@@ -85,7 +104,7 @@
                 "border": "none",
                 "border_width": 1,
                 "border_opacity": 100,
-                "border_radius": 4
+                "border_radius": 16
               },
               "blocks": {}
             }
@@ -93,17 +112,16 @@
           "block_order": []
         }
       },
-      "block_order": [
-        "title"
-      ],
+      "block_order": [],
       "settings": {
         "background_color": "{{ settings.color_palette.background }}",
-        "padding-block-start": 0,
+        "padding-block-start": 48,
         "padding-block-end": 48
       }
     }
   },
   "order": [
+    "hero",
     "main"
   ]
 }

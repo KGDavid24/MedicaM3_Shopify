@@ -1,35 +1,45 @@
 {%- doc -%}
   One step in a dalbe-process-steps section (see that file for the parent).
   Renders differently depending on the parent section's display_mode:
-  compact shows an icon + title + one-line teaser; detailed shows an
-  auto-numbered badge (position-derived, not a merchant setting) + title +
-  full body copy + a CTA button/link.
+  compact shows a numbered badge + title + one-line teaser, in a row of
+  tiles; detailed shows a photo (alternating sides by position) + the same
+  numbered badge + title + full body copy + a primary CTA and an optional
+  secondary CTA. The number badge is position-derived (not a merchant
+  setting) and used in both modes so the two sections read as one
+  continuous 5-step sequence, matching the source site's own numbered
+  badges in both its icon-tile overview and its detailed list.
+
+  Detailed mode wraps the media+content pair in <dalbe-reveal-on-scroll>
+  (assets/dalbe-reveal-on-scroll.js) so each side slides/fades in from its
+  own edge the first time it scrolls into view — see
+  animated-reveal-cards.md at the repo root for the source pattern this
+  was ported from. Compact mode doesn't use it (no media/content split to
+  animate there).
 {%- enddoc -%}
 
 {% liquid
   assign display_mode = section.settings.display_mode | default: 'compact'
   assign block_index = section.blocks | find_index: 'id', block.id
   assign step_number = block_index | plus: 1
+  assign step_parity = block_index | modulo: 2
+  assign image_side = 'right'
+  if step_parity == 1
+    assign image_side = 'left'
+  endif
 %}
 
-<li class="dalbe-process-steps__item" {{ block.shopify_attributes }}>
-  {% if display_mode == 'detailed' %}
-    <span class="dalbe-process-steps__number" aria-hidden="true">{{ step_number }}</span>
-  {% elsif block.settings.icon != blank or block.settings.placeholder_asset != blank %}
-    <span class="dalbe-process-steps__icon">
-      {% if block.settings.icon != blank %}
-        {{ block.settings.icon | image_url: width: 112 | image_tag: loading: 'lazy', alt: block.settings.title }}
-      {% else %}
-        <img
-          src="{{ block.settings.placeholder_asset | asset_url }}"
-          alt="{{ block.settings.title }}"
-          loading="lazy"
-        >
-      {% endif %}
-    </span>
+<li class="dalbe-process-steps__item dalbe-process-steps__item--image-{{ image_side }}" {{ block.shopify_attributes }}>
+  {% if display_mode == 'detailed' %}<dalbe-reveal-on-scroll class="dalbe-process-steps__reveal" data-media-side="{{ image_side }}">{% endif %}
+
+  {% if display_mode == 'detailed' and block.settings.image != blank %}
+    <div class="dalbe-process-steps__media">
+      {{ block.settings.image | image_url: width: 800 | image_tag: loading: 'lazy', alt: block.settings.title, sizes: '(min-width: 990px) 50vw, 100vw', widths: '400,600,800,1200' }}
+    </div>
   {% endif %}
 
   <div class="dalbe-process-steps__item-content">
+    <span class="dalbe-process-steps__number" aria-hidden="true">{{ step_number }}</span>
+
     {% if block.settings.title != blank %}
       <h3 class="dalbe-process-steps__title">{{ block.settings.title }}</h3>
     {% endif %}
@@ -42,13 +52,24 @@
       {% if block.settings.body != blank %}
         <div class="dalbe-process-steps__body">{{ block.settings.body }}</div>
       {% endif %}
-      {% if block.settings.cta_label != blank %}
-        <a href="{{ block.settings.cta_link | default: '#' }}" class="dalbe-process-steps__cta button">
-          {{ block.settings.cta_label }}
-        </a>
+      {% if block.settings.cta_label != blank or block.settings.secondary_cta_label != blank %}
+        <div class="dalbe-process-steps__cta-row">
+          {% if block.settings.cta_label != blank %}
+            <a href="{{ block.settings.cta_link | default: '#' }}" class="dalbe-process-steps__cta button">
+              {{ block.settings.cta_label }}
+            </a>
+          {% endif %}
+          {% if block.settings.secondary_cta_label != blank %}
+            <a href="{{ block.settings.secondary_cta_link | default: '#' }}" class="dalbe-process-steps__cta button button--secondary">
+              {{ block.settings.secondary_cta_label }}
+            </a>
+          {% endif %}
+        </div>
       {% endif %}
     {% endif %}
   </div>
+
+  {% if display_mode == 'detailed' %}</dalbe-reveal-on-scroll>{% endif %}
 </li>
 
 {% schema %}
@@ -61,15 +82,9 @@
     },
     {
       "type": "image_picker",
-      "id": "icon",
-      "label": "Icon",
-      "info": "Optional — overrides the placeholder icon below once uploaded."
-    },
-    {
-      "type": "text",
-      "id": "placeholder_asset",
-      "label": "Placeholder icon filename",
-      "info": "Bundled theme asset shown until a real icon image is uploaded above."
+      "id": "image",
+      "label": "Photo (detailed mode)",
+      "info": "Shown alongside the body copy, alternating sides by position."
     },
     {
       "type": "header",
@@ -106,6 +121,17 @@
       "type": "url",
       "id": "cta_link",
       "label": "Button link"
+    },
+    {
+      "type": "text",
+      "id": "secondary_cta_label",
+      "label": "Secondary button label",
+      "info": "Optional — e.g. a \"Produse\" link, only used on steps that need it."
+    },
+    {
+      "type": "url",
+      "id": "secondary_cta_link",
+      "label": "Secondary button link"
     }
   ]
 }

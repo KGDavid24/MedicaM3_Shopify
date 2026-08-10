@@ -27,13 +27,27 @@
         aria-label="{{ 'accessibility.secondary_navigation' | t | default: 'Secondary' }}"
       >
         {% for block in section.blocks %}
-          <a
-            href="{{ block.settings.link | default: '/pages/404-placeholder' }}"
-            class="dalbe-category-nav__trigger-link"
-            {{ block.shopify_attributes }}
-          >
-            {{ block.settings.label }}
-          </a>
+          {% if block.type == 'link_dropdown' %}
+            <div class="dalbe-category-nav__trigger-dropdown" {{ block.shopify_attributes }}>
+              <a
+                href="{{ block.settings.link | default: '/pages/404-placeholder' }}"
+                class="dalbe-category-nav__trigger-link dalbe-category-nav__trigger-link--dropdown"
+              >
+                {{ block.settings.label }}
+              </a>
+              <div class="dalbe-category-nav__trigger-dropdown-panel">
+                {% render 'dalbe-sidebar-nav-list' %}
+              </div>
+            </div>
+          {% else %}
+            <a
+              href="{{ block.settings.link | default: '/pages/404-placeholder' }}"
+              class="dalbe-category-nav__trigger-link"
+              {{ block.shopify_attributes }}
+            >
+              {{ block.settings.label }}
+            </a>
+          {% endif %}
         {% endfor %}
       </nav>
     {% endif %}
@@ -342,6 +356,48 @@
   .dalbe-category-nav__trigger-link:hover {
     opacity: 1;
     text-decoration: underline;
+  }
+
+  .dalbe-category-nav__trigger-dropdown {
+    position: relative;
+  }
+
+  .dalbe-category-nav__trigger-link--dropdown::after {
+    content: '';
+    display: inline-block;
+    margin-inline-start: 5px;
+    width: 6px;
+    height: 6px;
+    border-inline-end: 1.5px solid currentColor;
+    border-block-end: 1.5px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+  }
+
+  .dalbe-category-nav__trigger-dropdown-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 12px;
+    min-width: 220px;
+    padding: 6px;
+    background: var(--color-background);
+    box-shadow: var(--shadow-popover);
+    border-radius: var(--style-border-radius-cards, 4px);
+    z-index: var(--layer-menu-drawer);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition:
+      opacity 0.15s var(--animation-easing),
+      visibility 0.15s,
+      transform 0.15s var(--animation-easing);
+  }
+
+  .dalbe-category-nav__trigger-dropdown:hover .dalbe-category-nav__trigger-dropdown-panel,
+  .dalbe-category-nav__trigger-dropdown:focus-within .dalbe-category-nav__trigger-dropdown-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
 
   @media screen and (max-width: 989px) {
@@ -811,6 +867,26 @@
           "type": "url",
           "id": "link",
           "label": "Link"
+        }
+      ]
+    },
+    {
+      "type": "link_dropdown",
+      "name": "Link with dropdown",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "paragraph",
+          "content": "Dropdown contents are fixed: the same Cine suntem / Servicii / Despre Cookies pages + Settings → Policies links shown in the info-page sidebar (snippets/dalbe-sidebar-nav-list.liquid)."
         }
       ]
     }

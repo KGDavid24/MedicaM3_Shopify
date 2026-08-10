@@ -1,0 +1,616 @@
+{%- doc -%}
+  On-brand card rendering for the real Judge.me reviews on this page.
+
+  Judge.me's own "Featured carousel" app block is a parasite host here: it
+  must stay on the page (see the CSS at the bottom, which hides it visually)
+  because it server-renders the real review data into the DOM. This section
+  scrapes that data (text, star count, reviewer name, review photo) and
+  rebuilds it as on-brand cards, matching dalbe-testimonial's visual language
+  instead of Judge.me's stock grey widget styling.
+
+  What's deliberately NOT implemented: an API token/reply-fetch layer. This
+  store's Judge.me integration is a Shopify theme-app-extension (loaded from
+  cdn.shopify.com/extensions/…), not the classic cdn.judge.me widget --
+  confirmed by inspecting the live page that window.jdgm exposes no
+  SHOP_TOKEN and no judge.me API calls are ever made client-side. Owner
+  replies are not present anywhere in this widget's DOM either. So there is
+  no reachable data source for replies/avatars here; only what the carousel
+  itself renders (text, stars, name, review photos) is available. If a future
+  Judge.me/theme change exposes that data, the scrape function below is the
+  single place to extend.
+{%- enddoc -%}
+
+<div class="dalbe-reviews-live section section--page-width" data-dalbe-reviews>
+  {% if section.settings.heading != blank %}
+    <h2 class="dalbe-reviews-live__heading">{{ section.settings.heading }}</h2>
+  {% endif %}
+  {% if section.settings.subheading != blank %}
+    <p class="dalbe-reviews-live__subheading">{{ section.settings.subheading }}</p>
+  {% endif %}
+
+  <div class="dalbe-reviews-live__summary" data-dalbe-reviews-summary hidden></div>
+
+  <div class="dalbe-reviews-live__viewport">
+    <button
+      type="button"
+      class="dalbe-reviews-live__nav dalbe-reviews-live__nav--prev"
+      data-dalbe-reviews-prev
+      aria-label="{{ 'general.slider.previous_slide' | t }}"
+      hidden
+    >&larr;</button>
+
+    <ul class="dalbe-reviews-live__track list-unstyled" data-dalbe-reviews-track></ul>
+
+    <button
+      type="button"
+      class="dalbe-reviews-live__nav dalbe-reviews-live__nav--next"
+      data-dalbe-reviews-next
+      aria-label="{{ 'general.slider.next_slide' | t }}"
+      hidden
+    >&rarr;</button>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.currentScript.previousElementSibling;
+    var track = root.querySelector('[data-dalbe-reviews-track]');
+    var summaryEl = root.querySelector('[data-dalbe-reviews-summary]');
+    var prevBtn = root.querySelector('[data-dalbe-reviews-prev]');
+    var nextBtn = root.querySelector('[data-dalbe-reviews-next]');
+    var maxReviews = {{ section.settings.max_reviews | default: 12 }};
+    var blocklist = {{ section.settings.blocklist | default: '' | json }}
+      .split(',')
+      .map(function (s) { return s.trim().toLowerCase(); })
+      .filter(Boolean);
+
+    function scrapeReviews() {
+      var items = document.querySelectorAll('.jdgm-carousel-item');
+      var seen = {};
+      var reviews = [];
+
+      items.forEach(function (item) {
+        var id = item.getAttribute('data-review-id');
+        if (!id || seen[id]) return;
+        seen[id] = true;
+
+        var textEl = item.querySelector('.jdgm-text');
+        var text = textEl ? textEl.textContent.trim() : '';
+        var name = (item.querySelector('.jdgm-reviewer-name') || {}).textContent || '';
+        name = name.trim();
+        var stars = item.querySelectorAll('.jdgm-star.jdgm--on').length;
+        var photos = Array.from(item.querySelectorAll('img[alt="Review Image"]'))
+          .map(function (img) { return img.getAttribute('src'); })
+          .filter(Boolean);
+
+        if (!text || !name) return;
+        if (blocklist.some(function (frag) { return name.toLowerCase().indexOf(frag) !== -1; })) return;
+
+        reviews.push({ id: id, text: text, name: name, stars: stars, photos: photos });
+      });
+
+      return reviews.slice(0, maxReviews);
+    }
+
+    function scrapeSummary() {
+      var ratingTextEl = document.querySelector('.jdgm-average-rating .jdgm-rating-text');
+      var countEl = document.querySelector('.jdgm-average-rating .jdgm-reviews-count');
+      if (!ratingTextEl || !countEl) return null;
+
+      var avgMatch = ratingTextEl.textContent.trim().match(/^([\d.,]+)/);
+      if (!avgMatch) return null;
+      var avg = parseFloat(avgMatch[1].replace(',', '.'));
+      var count = parseInt(countEl.textContent.trim(), 10);
+      if (isNaN(avg) || isNaN(count)) return null;
+
+      return { avg: avg, count: count };
+    }
+
+    function buildSummary(summary) {
+      summaryEl.innerHTML = '';
+
+      var stars = document.createElement('div');
+      stars.className = 'dalbe-reviews-live__summary-stars';
+      stars.setAttribute('aria-hidden', 'true');
+      for (var i = 1; i <= 5; i++) {
+        var fill = Math.max(0, Math.min(1, summary.avg - (i - 1))) * 100;
+        var star = document.createElement('span');
+        star.className = 'dalbe-reviews-live__summary-star';
+        star.textContent = '★';
+        star.style.setProperty('--fill', fill + '%');
+        stars.appendChild(star);
+      }
+      summaryEl.appendChild(stars);
+
+      var text = document.createElement('span');
+      text.className = 'dalbe-reviews-live__summary-text';
+      var noun = summary.count === 1 ? 'recenzie' : 'recenzii';
+      text.textContent = summary.avg.toFixed(2) + ' (' + summary.count + ' ' + noun + ')';
+      summaryEl.appendChild(text);
+
+      summaryEl.hidden = false;
+    }
+
+    function getLightbox() {
+      var existing = document.getElementById('dalbe-reviews-lightbox');
+      if (existing) return existing._api;
+
+      var el = document.createElement('div');
+      el.id = 'dalbe-reviews-lightbox';
+      el.className = 'dalbe-reviews-lightbox';
+      el.hidden = true;
+      el.innerHTML =
+        '<button type="button" class="dalbe-reviews-lightbox__close" aria-label="Închide">&times;</button>' +
+        '<button type="button" class="dalbe-reviews-lightbox__nav dalbe-reviews-lightbox__nav--prev" aria-label="Imaginea anterioară">&larr;</button>' +
+        '<img class="dalbe-reviews-lightbox__image" src="" alt="">' +
+        '<button type="button" class="dalbe-reviews-lightbox__nav dalbe-reviews-lightbox__nav--next" aria-label="Imaginea următoare">&rarr;</button>' +
+        '<div class="dalbe-reviews-lightbox__counter"></div>';
+      document.body.appendChild(el);
+
+      var imgEl = el.querySelector('.dalbe-reviews-lightbox__image');
+      var counterEl = el.querySelector('.dalbe-reviews-lightbox__counter');
+      var prevNavBtn = el.querySelector('.dalbe-reviews-lightbox__nav--prev');
+      var nextNavBtn = el.querySelector('.dalbe-reviews-lightbox__nav--next');
+      var closeBtn = el.querySelector('.dalbe-reviews-lightbox__close');
+
+      var state = { photos: [], index: 0 };
+
+      function show() {
+        var multi = state.photos.length > 1;
+        imgEl.src = state.photos[state.index];
+        counterEl.hidden = !multi;
+        counterEl.textContent = (state.index + 1) + ' / ' + state.photos.length;
+        prevNavBtn.hidden = !multi;
+        nextNavBtn.hidden = !multi;
+      }
+
+      function open(photos, index) {
+        state.photos = photos;
+        state.index = index || 0;
+        show();
+        el.hidden = false;
+        document.body.style.overflow = 'hidden';
+      }
+
+      function close() {
+        el.hidden = true;
+        document.body.style.overflow = '';
+      }
+
+      function step(direction) {
+        var len = state.photos.length;
+        state.index = (state.index + direction + len) % len;
+        show();
+      }
+
+      el.addEventListener('click', function (e) {
+        if (e.target === el) close();
+      });
+      closeBtn.addEventListener('click', close);
+      prevNavBtn.addEventListener('click', function () { step(-1); });
+      nextNavBtn.addEventListener('click', function () { step(1); });
+
+      document.addEventListener('keydown', function (e) {
+        if (el.hidden) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') step(-1);
+        else if (e.key === 'ArrowRight') step(1);
+      });
+
+      var api = { open: open };
+      el._api = api;
+      return api;
+    }
+
+    function buildCard(review) {
+      var li = document.createElement('li');
+      li.className = 'dalbe-reviews-live__card';
+
+      var badge = document.createElement('div');
+      badge.className = 'dalbe-reviews-live__badge';
+      badge.innerHTML =
+        '<svg viewBox="0 0 18 18" width="14" height="14" aria-hidden="true">' +
+        '<path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/>' +
+        '<path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 0 0 9 18z"/>' +
+        '<path fill="#FBBC05" d="M3.97 10.71a5.4 5.4 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3.01-2.33z"/>' +
+        '<path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>' +
+        '</svg>';
+      li.appendChild(badge);
+
+      if (review.stars > 0) {
+        var rating = document.createElement('div');
+        rating.className = 'dalbe-reviews-live__rating';
+        rating.setAttribute('aria-hidden', 'true');
+        for (var i = 1; i <= 5; i++) {
+          var star = document.createElement('span');
+          star.className = 'dalbe-reviews-live__star' + (i <= review.stars ? ' dalbe-reviews-live__star--filled' : '');
+          star.textContent = '★';
+          rating.appendChild(star);
+        }
+        li.appendChild(rating);
+      }
+
+      var quote = document.createElement('blockquote');
+      quote.className = 'dalbe-reviews-live__quote';
+      quote.textContent = review.text;
+      li.appendChild(quote);
+
+      if (review.photos && review.photos.length) {
+        var gallery = document.createElement('div');
+        gallery.className = 'dalbe-reviews-live__gallery' +
+          (review.photos.length > 1 ? ' dalbe-reviews-live__gallery--multi' : '');
+
+        review.photos.forEach(function (src, i) {
+          var img = document.createElement('img');
+          img.className = 'dalbe-reviews-live__photo';
+          img.src = src;
+          img.alt = 'Fotografie recenzie' + (review.photos.length > 1 ? ' ' + (i + 1) : '');
+          img.loading = 'lazy';
+          img.onerror = function () { img.remove(); };
+          img.addEventListener('click', function () {
+            getLightbox().open(review.photos, i);
+          });
+          gallery.appendChild(img);
+        });
+
+        li.appendChild(gallery);
+      }
+
+      var author = document.createElement('div');
+      author.className = 'dalbe-reviews-live__author';
+      var nameEl = document.createElement('span');
+      nameEl.className = 'dalbe-reviews-live__name';
+      nameEl.textContent = review.name;
+      author.appendChild(nameEl);
+      li.appendChild(author);
+
+      return li;
+    }
+
+    function render() {
+      var reviews = scrapeReviews();
+      if (!reviews.length) return false;
+
+      track.innerHTML = '';
+      reviews.forEach(function (review) {
+        track.appendChild(buildCard(review));
+      });
+
+      if (reviews.length > 1) {
+        prevBtn.hidden = false;
+        nextBtn.hidden = false;
+      }
+
+      var summary = scrapeSummary();
+      if (summary) buildSummary(summary);
+
+      return true;
+    }
+
+    function scrollByCard(direction) {
+      var card = track.querySelector('.dalbe-reviews-live__card');
+      var amount = card ? card.getBoundingClientRect().width + 16 : 300;
+      track.scrollBy({ left: amount * direction, behavior: 'smooth' });
+    }
+
+    prevBtn.addEventListener('click', function () { scrollByCard(-1); });
+    nextBtn.addEventListener('click', function () { scrollByCard(1); });
+
+    if (!render()) {
+      var observer = new MutationObserver(function () {
+        if (render()) observer.disconnect();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      setTimeout(function () { observer.disconnect(); }, 8000);
+    }
+  })();
+</script>
+
+{% stylesheet %}
+  .dalbe-reviews-live {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    padding-block: var(--padding-xl);
+  }
+
+  .dalbe-reviews-live__heading {
+    text-align: center;
+    margin: 0 0 0.5rem;
+  }
+
+  .dalbe-reviews-live__subheading {
+    text-align: center;
+    margin: 0 0 var(--margin-xl);
+    color: var(--color-foreground-secondary, #666666);
+  }
+
+  .dalbe-reviews-live__summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 var(--margin-xl, 24px);
+  }
+
+  .dalbe-reviews-live__summary-stars {
+    display: inline-flex;
+    font-size: 1.15rem;
+    letter-spacing: 1px;
+  }
+
+  .dalbe-reviews-live__summary-star {
+    background: linear-gradient(90deg, var(--dalbe-red) var(--fill, 0%), #d8dbe6 var(--fill, 0%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .dalbe-reviews-live__summary-text {
+    font-weight: 700;
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-reviews-live__viewport {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dalbe-reviews-live__track {
+    --per-view: 1;
+    display: flex;
+    flex: 1 1 0%;
+    min-width: 0;
+    gap: 16px;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .dalbe-reviews-live__track {
+      --per-view: 2;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .dalbe-reviews-live__track {
+      --per-view: 4;
+    }
+  }
+
+  .dalbe-reviews-live__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dalbe-reviews-live__card {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    width: calc((100% - (var(--per-view) - 1) * 16px) / var(--per-view));
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm, 8px);
+    padding: var(--padding-lg, 20px);
+    background: var(--dalbe-navy);
+    border-radius: var(--style-border-radius-cards, 8px);
+  }
+
+  .dalbe-reviews-live__badge {
+    display: flex;
+    align-items: center;
+  }
+
+  .dalbe-reviews-live__rating {
+    color: #ffffff;
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+
+  .dalbe-reviews-live__star--filled {
+    color: var(--dalbe-red);
+  }
+
+  .dalbe-reviews-live__quote {
+    margin: 0;
+    flex: 1 1 auto;
+    font-style: normal;
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #ffffff;
+  }
+
+  .dalbe-reviews-live__gallery {
+    display: flex;
+  }
+
+  .dalbe-reviews-live__gallery--multi {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .dalbe-reviews-live__photo {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .dalbe-reviews-live__gallery--multi .dalbe-reviews-live__photo {
+    width: calc(33.33% - 4px);
+    max-height: 72px;
+  }
+
+  .dalbe-reviews-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #08080c;
+  }
+
+  .dalbe-reviews-lightbox[hidden] {
+    display: none;
+  }
+
+  .dalbe-reviews-lightbox__image {
+    max-width: min(900px, 90vw);
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 4px;
+  }
+
+  .dalbe-reviews-lightbox__nav[hidden] {
+    display: none;
+  }
+
+  .dalbe-reviews-lightbox__close,
+  .dalbe-reviews-lightbox__nav {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .dalbe-reviews-lightbox__close:hover,
+  .dalbe-reviews-lightbox__nav:hover {
+    background: var(--dalbe-navy);
+    border-color: var(--dalbe-navy);
+  }
+
+  .dalbe-reviews-lightbox__close {
+    top: 20px;
+    right: 20px;
+  }
+
+  .dalbe-reviews-lightbox__nav--prev {
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .dalbe-reviews-lightbox__nav--next {
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .dalbe-reviews-lightbox__counter {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  @media screen and (max-width: 749px) {
+    .dalbe-reviews-lightbox__nav {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  .dalbe-reviews-live__author {
+    display: flex;
+    align-items: center;
+  }
+
+  .dalbe-reviews-live__name {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .dalbe-reviews-live__nav {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--dalbe-navy);
+    background: var(--color-background);
+    color: var(--dalbe-navy);
+    cursor: pointer;
+  }
+
+  .dalbe-reviews-live__nav:hover {
+    background: var(--dalbe-navy);
+    color: #ffffff;
+  }
+
+  @media screen and (max-width: 749px) {
+    .dalbe-reviews-live__nav {
+      display: none;
+    }
+  }
+
+  /*
+    Hides Judge.me's own stock carousel markup on this page. It has to stay
+    IN the DOM (not removed) -- the script above scrapes its server-rendered
+    review data -- but its own default grey-card styling is what this section
+    replaces. .jdgm-horizon-widget is Judge.me's own wrapper class for its
+    Shopify Horizon theme-app-extension block; confirmed live on this store.
+  */
+  .jdgm-horizon-widget {
+    display: none !important;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Live reviews (Judge.me)",
+  "tag": "div",
+  "class": "dalbe-reviews-live-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Alege cu încredere – Clienții noștri confirmă!"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "range",
+      "id": "max_reviews",
+      "label": "Max reviews shown",
+      "min": 3,
+      "max": 24,
+      "step": 1,
+      "default": 12
+    },
+    {
+      "type": "text",
+      "id": "blocklist",
+      "label": "Hide by name (comma-separated)",
+      "info": "Partial, case-insensitive match. For dummy/test reviews that can't be deleted in Judge.me."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Live reviews (Judge.me)"
+    }
+  ]
+}
+{% endschema %}

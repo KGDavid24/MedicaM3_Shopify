@@ -1,12 +1,16 @@
 {%- doc -%}
   A custom header replacing Horizon's stock one, matching the source site's
   layout: logo, an always-visible search bar (not an icon-triggered popup),
-  a phone number, and three labeled actions (Cere oferta / Contul meu /
-  Coș). Simplified from the source in one way: cart and account are plain
-  links to the real cart/account pages rather than a drawer/popover, so
-  this doesn't need to reimplement Horizon's own cart-drawer or account
+  a phone number, and three labeled actions (Wishlist / Contul meu / Coș).
+  Simplified from the source in two ways: cart and account are plain links
+  to the real cart/account pages rather than a drawer/popover, so this
+  doesn't need to reimplement Horizon's own cart-drawer or account
   components — clicking them still works correctly, just as a normal page
-  navigation instead of an overlay.
+  navigation instead of an overlay. Wishlist has no real functionality
+  behind it (no wishlist app installed) — it's a styled placeholder link
+  (`/pages/404-placeholder`, this project's standing convention for "not a
+  real destination yet"), included to match the reference site's header,
+  not a working feature.
 {%- enddoc -%}
 
 {% liquid
@@ -22,7 +26,7 @@
         {% render 'image',
           image: settings.logo,
           class: 'dalbe-header__logo-image',
-          height: settings.logo_height,
+          height: 52,
           alt_text_fallback: alt_text_fallback,
           text_fallback: shop.name
         %}
@@ -60,14 +64,13 @@
     </div>
 
     <div class="dalbe-header__actions">
-      <a href="{{ section.settings.quote_link | default: '/pages/404-placeholder' }}" class="dalbe-header__action dalbe-header__action--quote">
+      <a href="/pages/404-placeholder" class="dalbe-header__action dalbe-header__action--wishlist">
         <span class="svg-wrapper" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 2h9l4 4v16H6z"/>
-            <path d="M14 2v5h5M9 12h6M9 16h6M9 8h2"/>
+            <path d="M12 20.5s-7.5-4.6-10-9.3C.6 8 1.8 4.5 5 3.4c2.2-.8 4.5 0 6 2 1.5-2 3.8-2.8 6-2 3.2 1.1 4.4 4.6 3 7.8-2.5 4.7-10 9.3-10 9.3Z"/>
           </svg>
         </span>
-        <span>{{ section.settings.quote_label }}</span>
+        <span>Wishlist</span>
       </a>
 
       <a href="{{ routes.account_url }}" class="dalbe-header__action">
@@ -164,7 +167,7 @@
   }
 
   .dalbe-header__logo-image {
-    height: 40px;
+    height: 52px;
     width: auto;
     object-fit: contain;
   }
@@ -289,8 +292,7 @@
   }
 
   @media screen and (max-width: 989px) {
-    .dalbe-header__phone,
-    .dalbe-header__action--quote {
+    .dalbe-header__phone {
       display: none;
     }
 
@@ -332,21 +334,6 @@
       "id": "phone_number",
       "label": "Phone number",
       "default": "021.308.57.51"
-    },
-    {
-      "type": "header",
-      "content": "Quote request"
-    },
-    {
-      "type": "text",
-      "id": "quote_label",
-      "label": "Label",
-      "default": "Cere oferta"
-    },
-    {
-      "type": "url",
-      "id": "quote_link",
-      "label": "Link"
     }
   ]
 }

@@ -6,38 +6,55 @@
         "text_1": {
           "type": "text",
           "settings": {
-            "text": "<h1>Clinică la Cheie – Soluția Completă pentru Cabinetul Tău</h1>",
-            "type_preset": "h1",
-            "max_width": "narrow"
+            "text": "<h1><strong>Clinică la Cheie – Soluția Completă pentru Cabinetul Tău</strong></h1>",
+            "type_preset": "custom",
+            "font_size": "2rem",
+            "text_color": "#131f5d",
+            "max_width": "none",
+            "padding-inline-start": 60,
+            "padding-inline-end": 60
           }
         },
         "text_2": {
           "type": "text",
           "settings": {
-            "text": "<p>Transformă-ți visul în realitate cu un proces simplu și eficient. Îți dorești să deschizi o clinică medicală sau un cabinet stomatologic, dar nu știi de unde să începi? Echipa noastră îți oferă soluții complete pentru dotarea, organizarea și optimizarea clinicii tale, astfel încât să îți poți începe activitatea rapid, fără stres și cu echipamente de ultimă generație.</p>",
-            "max_width": "narrow",
-            "padding-block-end": 32
+            "text": "<p><strong>Transformă-ți visul în realitate cu un proces simplu și eficient.</strong></p>",
+            "type_preset": "custom",
+            "font_size": "1.25rem",
+            "text_color": "#54595f",
+            "max_width": "none",
+            "padding-inline-start": 60,
+            "padding-inline-end": 60
           }
         },
-        "button": {
-          "type": "button",
-          "name": "t:names.button",
+        "text_3": {
+          "type": "text",
           "settings": {
-            "label": "Contactează-ne!",
-            "link": "tel:+40376509140"
+            "text": "<p>Îți dorești să deschizi o clinică medicală sau un cabinet stomatologic, dar nu știi de unde să începi? Echipa noastră îți oferă soluții complete pentru dotarea, organizarea și optimizarea clinicii tale, astfel încât să îți poți începe activitatea rapid, fără stres și cu echipamente de ultimă generație.</p>",
+            "type_preset": "custom",
+            "font_size": "1.25rem",
+            "text_color": "#54595f",
+            "max_width": "none",
+            "padding-inline-start": 60,
+            "padding-inline-end": 60,
+            "padding-block-end": 32
           }
         }
       },
-      "block_order": ["text_1", "text_2", "button"],
+      "block_order": ["text_1", "text_2", "text_3"],
       "settings": {
         "horizontal_alignment_flex_direction_column": "center",
         "gap": 16,
-        "section_height": "large",
+        "section_width": "full-width",
+        "section_height": "auto",
         "padding-block-start": 40,
         "padding-block-end": 40,
         "background_color": "#f5f5f5",
+        "media_type_1": "image",
+        "image_1": "shopify://shop_images/dalbe-clinica-hero.webp",
         "toggle_overlay": true,
-        "overlay_style": "gradient"
+        "overlay_style": "solid",
+        "overlay_color": "#f7f7f5e8"
       }
     },
     "overview": {
@@ -46,7 +63,6 @@
         "step_1": {
           "type": "dalbe-process-step",
           "settings": {
-            "placeholder_asset": "dalbe-menu-sketch-cabinet-echipamente.svg",
             "title": "Identificarea Spațiilor",
             "teaser": "Alegerea locației potrivite este primul pas către succes!"
           }
@@ -54,7 +70,6 @@
         "step_2": {
           "type": "dalbe-process-step",
           "settings": {
-            "placeholder_asset": "dalbe-menu-sketch-cabinet-consumabile.svg",
             "title": "Design și Proiectare",
             "teaser": "Clinică modernă, eficientă și atractivă!"
           }
@@ -62,7 +77,6 @@
         "step_3": {
           "type": "dalbe-process-step",
           "settings": {
-            "placeholder_asset": "dalbe-menu-sketch-cadcam-echipamente.svg",
             "title": "Dotare cu Echipamente Performante",
             "teaser": "Tehnologie avansată pentru performanță maximă!"
           }
@@ -70,7 +84,6 @@
         "step_4": {
           "type": "dalbe-process-step",
           "settings": {
-            "placeholder_asset": "dalbe-menu-sketch-laborator-echipamente.svg",
             "title": "Management și Organizare",
             "teaser": "Eficiență și profesionalism în gestionarea clinicii!"
           }
@@ -78,7 +91,6 @@
         "step_5": {
           "type": "dalbe-process-step",
           "settings": {
-            "placeholder_asset": "dalbe-menu-sketch-ortodontie.svg",
             "title": "Soluții de Finanțare Personalizate",
             "teaser": "Sprijin pentru dezvoltarea afacerii tale!"
           }
@@ -96,46 +108,53 @@
         "step_1": {
           "type": "dalbe-process-step",
           "settings": {
+            "image": "shopify://shop_images/dalbe-clinica-step1.jpg",
             "title": "Identificarea Spațiilor",
             "body": "<p>Alegerea locației potrivite este esențială pentru succesul clinicii tale. Analizăm împreună cele mai bune opțiuni, evaluând fezabilitatea și adaptabilitatea spațiului la cerințele medicale. Oferim suport tehnic pentru integrarea infrastructurii necesare și optimizăm fiecare detaliu astfel încât să respecte toate normele sanitare și funcționale. În plus, realizăm o analiză de costuri pentru a ne asigura că obții cea mai bună soluție în raport calitate-preț.</p>",
             "cta_label": "Contactează-ne!",
-            "cta_link": "tel:+40376509140"
+            "cta_link": "/pages/contact"
           }
         },
         "step_2": {
           "type": "dalbe-process-step",
           "settings": {
+            "image": "shopify://shop_images/dalbe-clinica-step2.jpg",
             "title": "Design și Proiectare",
             "body": "<p>Un design bine gândit este esențial pentru o clinică modernă și eficientă. Planificăm fiecare detaliu pentru a crea un spațiu ergonomic, plăcut și adaptat nevoilor tale. Oferim randări 3D și soluții de mobilier personalizat pentru a optimiza fiecare colț al cabinetului. Folosim materiale durabile și conforme cu standardele medicale, iar fiecare proiect este gândit pentru a asigura un flux optim de pacienți și personal medical.</p>",
             "cta_label": "Contactează-ne!",
-            "cta_link": "tel:+40376509140"
+            "cta_link": "/pages/contact"
           }
         },
         "step_3": {
           "type": "dalbe-process-step",
           "settings": {
+            "image": "shopify://shop_images/dalbe-clinica-step3.jpg",
             "title": "Dotare cu Echipamente Performante",
             "body": "<p>Tehnologia joacă un rol crucial în succesul unei clinici. Instalăm echipamente medicale și stomatologice de ultimă generație, selectate special pentru a îndeplini cele mai exigente cerințe ale profesioniștilor din domeniu. De la unituri stomatologice și aparatură de diagnostic până la software-uri de gestionare a pacienților, ne ocupăm de fiecare detaliu. Oferim instruire completă pentru utilizarea echipamentelor și întreținerea acestora, astfel încât să ai un start sigur și eficient.</p>",
             "cta_label": "Contactează-ne!",
-            "cta_link": "tel:+40376509140"
+            "cta_link": "/pages/contact",
+            "secondary_cta_label": "Produse",
+            "secondary_cta_link": "/collections/all"
           }
         },
         "step_4": {
           "type": "dalbe-process-step",
           "settings": {
+            "image": "shopify://shop_images/dalbe-clinica-step4.jpg",
             "title": "Management și Organizare",
             "body": "<p>O clinică bine organizată asigură un flux de pacienți eficient și o experiență pozitivă pentru toți cei implicați. Te ajutăm să implementezi cele mai bune practici de management, optimizând programările, fluxul de lucru și interacțiunea cu pacienții. De asemenea, oferim training pentru personal și dezvoltăm strategii de marketing personalizate pentru creșterea vizibilității și atragerea pacienților. Implementăm soluții digitale pentru administrarea clinicii, astfel încât să ai control total asupra operațiunilor.</p>",
             "cta_label": "Contactează-ne!",
-            "cta_link": "tel:+40376509140"
+            "cta_link": "/pages/contact"
           }
         },
         "step_5": {
           "type": "dalbe-process-step",
           "settings": {
+            "image": "shopify://shop_images/dalbe-clinica-step5.jpg",
             "title": "Soluții de Finanțare Personalizate",
             "body": "<p>Înțelegem că deschiderea unei clinici necesită o investiție semnificativă, motiv pentru care îți oferim soluții financiare adaptate nevoilor tale. Oferim consultanță pentru accesarea finanțărilor guvernamentale sau europene, pachete personalizate de leasing pentru echipamente și strategii de optimizare a costurilor. Fie că ai nevoie de un plan de finanțare pe termen lung sau de sprijin în procesul de aplicare pentru fonduri, echipa noastră este pregătită să îți ofere cele mai bune soluții.</p>",
             "cta_label": "Contactează-ne!",
-            "cta_link": "tel:+40376509140"
+            "cta_link": "/pages/contact"
           }
         }
       },

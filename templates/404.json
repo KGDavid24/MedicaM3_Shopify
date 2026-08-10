@@ -15,7 +15,7 @@
           "type": "text",
           "name": "t:names.text",
           "settings": {
-            "text": "<h1>Page not found</h1>",
+            "text": "<h1>Pagina nu a fost găsită</h1>",
             "width": "100%",
             "max_width": "normal",
             "alignment": "center",
@@ -39,7 +39,7 @@
           "type": "text",
           "name": "t:names.text",
           "settings": {
-            "text": "<p>The link may be incorrect, or the page has been removed. </p>",
+            "text": "<p>Linkul poate fi incorect sau pagina a fost eliminată.</p>",
             "width": "100%",
             "max_width": "normal",
             "alignment": "center",
@@ -59,11 +59,16 @@
           },
           "blocks": {}
         },
+        "search": {
+          "type": "dalbe-404-search",
+          "settings": {},
+          "blocks": {}
+        },
         "button_PAQMwR": {
           "type": "button",
           "name": "t:names.button",
           "settings": {
-            "label": "Continue shopping",
+            "label": "Continuă cumpărăturile",
             "link": "shopify://collections/all",
             "open_in_new_tab": false,
             "style_class": "button",
@@ -78,6 +83,7 @@
       "block_order": [
         "text_GqmVFf",
         "text_Ua9XAW",
+        "search",
         "button_PAQMwR"
       ],
       "settings": {
@@ -130,7 +136,7 @@
               "type": "text",
               "name": "t:names.text",
               "settings": {
-                "text": "<p>Discover something new</p>",
+                "text": "<p>Descoperă ceva nou</p>",
                 "width": "fit-content",
                 "max_width": "normal",
                 "alignment": "left",

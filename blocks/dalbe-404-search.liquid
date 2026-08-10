@@ -1,0 +1,85 @@
+{%- doc -%}
+  Standalone search bar for the 404 page (templates/404.json). The
+  theme's own _search-input block is built specifically for the /search
+  results page (tied to search.terms/search.results, a dedicated JS
+  module) so it doesn't fit here — this is a plain form posting to
+  routes.search_url instead.
+{%- enddoc -%}
+
+<form action="{{ routes.search_url }}" method="get" role="search" class="dalbe-404-search">
+  <input type="hidden" name="type" value="product">
+  <span class="svg-wrapper dalbe-404-search__icon">
+    {{ 'icon-search.svg' | inline_asset_content }}
+  </span>
+  <label for="dalbe-404-search-input" class="visually-hidden">
+    Caută în catalogul nostru
+  </label>
+  <input
+    id="dalbe-404-search-input"
+    class="dalbe-404-search__input"
+    type="search"
+    name="q"
+    placeholder="Caută în catalogul nostru"
+    autocomplete="off"
+  >
+  <button type="submit" class="dalbe-404-search__submit">
+    Caută
+  </button>
+</form>
+
+{% stylesheet %}
+  .dalbe-404-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 999px;
+    padding: 6px 6px 6px 20px;
+  }
+
+  .dalbe-404-search__icon {
+    display: flex;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--dalbe-navy, #131f5d);
+    opacity: 0.6;
+  }
+
+  .dalbe-404-search__input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background: transparent;
+    color: var(--dalbe-text, #222222);
+  }
+
+  .dalbe-404-search__submit {
+    flex-shrink: 0;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 22px;
+    background: var(--dalbe-navy, #131f5d);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+  }
+
+  .dalbe-404-search__submit:hover {
+    opacity: 0.88;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "404 search bar",
+  "tag": null
+}
+{% endschema %}

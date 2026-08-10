@@ -17,6 +17,325 @@
     --dalbe-red: #e9324e;
     --dalbe-text: #222222;
     --dalbe-heading: #020202;
-    --dalbe-header-text: #ffffff;
+    --dalbe-header-text: #222222;
+  }
+
+  /* dalbe: Horizon's own full-width section CSS (assets/base.css,
+     --full-page-margin-inline-offset) uses raw 100vw, which on any
+     browser that reserves space for a persistent scrollbar (most desktop
+     Windows browsers) is wider than the actual visible viewport —
+     causing horizontal scroll on any page with a full-width section.
+     html/body alone doesn't fix this: at >=990px Horizon freezes
+     html/body (base.css's `html:has(.page-wrapper) { overflow: hidden }`)
+     and makes .page-wrapper itself the real scrolling element
+     (overflow-y: auto, no overflow-x set, so it defaults to visible) —
+     .page-wrapper is the element that actually needs clipping. Setting
+     it on both here covers desktop (.page-wrapper) and mobile
+     (html/body, since .page-wrapper isn't independently scrollable
+     below 990px). */
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .page-wrapper {
+    overflow-x: hidden;
+  }
+
+  /* dalbe: brand styling for the stock Horizon blog listing
+     (sections/main-blog.liquid + blocks/_blog-post-card.liquid) — that
+     component already renders image/title/date/excerpt/read-more
+     automatically per article, just unstyled. Overridden globally here
+     rather than forking the section, since the stock block structure
+     already does everything the Articole page needs. */
+  .blog-post-item {
+    border: none !important;
+    padding: 0 !important;
+    height: 100%;
+  }
+
+  /* Equal-height cards: .shopify-block (Shopify's own theme-editor drag/
+     drop wrapper around every block) is the actual grid item that
+     stretches to the row height — our styled .blog-post-card sits one
+     level deeper and needs height:100% explicitly to follow suit,
+     otherwise each card just sizes to its own excerpt length. */
+  .blog-posts-container {
+    align-items: stretch;
+  }
+
+  .blog-post-item .shopify-block {
+    height: 100%;
+  }
+
+  .blog-post-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(19, 31, 93, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .blog-post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px -8px rgba(19, 31, 93, 0.2);
+  }
+
+  .blog-post-card__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .blog-post-card__title-link,
+  .blog-post-card__title-link .text-block {
+    color: var(--dalbe-navy) !important;
+    font-weight: 800;
+    font-size: 1.375rem !important;
+    line-height: 1.3 !important;
+    letter-spacing: -0.01em;
+  }
+
+  .blog-post-card__title-link:hover {
+    opacity: 0.8;
+  }
+
+  .blog-post-card .blog-post-details {
+    font-size: 0.9375rem !important;
+    font-weight: 600;
+    color: var(--dalbe-navy);
+    opacity: 0.6;
+  }
+
+  .blog-post-card__content-text {
+    color: var(--dalbe-text, #222222);
+    font-size: 1.0625rem !important;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .blog-post-card__content-text a {
+    display: block;
+    margin-block-start: 0.5em;
+    color: var(--dalbe-navy) !important;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  /* dalbe: article body styling (sections/main-blog-post.liquid,
+     blocks/_blog-post-content.liquid renders article.content raw into
+     .blog-post-content) — headings, lead paragraph and callout boxes,
+     modeled on medicam3.ro's own article layout.
+
+     Widened from the stock 672px (--normal-content-width, a narrow prose
+     token) to 900px so body text actually uses the page — the reference
+     site's article column is noticeably wider than Horizon's default,
+     and .blog-post-content's width was leaving ~260px of dead margin on
+     each side inside an 1190px-wide section. The title banner
+     (blocks/group.liquid, id blog-post-title-banner in
+     templates/article.json) is matched to the same 900px so the two
+     don't visually mismatch — its block-id survives into a stable class
+     suffix (__blog-post-title-banner), safe to target directly since
+     it's unique to this one block instance, not shared with other
+     group blocks on other pages. */
+  .blog-post-content,
+  [class*="__blog-post-title-banner"] {
+    max-width: 900px !important;
+    margin-inline: auto !important;
+  }
+
+  .blog-post-content h2 {
+    margin-block: 2.5rem 1rem;
+    padding-block-end: 0.5rem;
+    color: var(--dalbe-navy);
+    border-block-end: 3px solid var(--dalbe-red);
+  }
+
+  .blog-post-content h3 {
+    margin-block: 2rem 0.75rem;
+    color: var(--dalbe-navy);
+  }
+
+  .blog-post-content h4 {
+    margin-block: 1.5rem 0.5rem;
+    color: var(--dalbe-navy);
+  }
+
+  .blog-post-content p {
+    line-height: 1.7;
+  }
+
+  .blog-post-content > rte-formatter > p:first-of-type {
+    background: #f4f5f9;
+    border-inline-start: 4px solid var(--dalbe-red);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    font-weight: 600;
+    font-size: 1.0625rem;
+  }
+
+  .blog-post-content blockquote {
+    background: var(--dalbe-navy);
+    color: #ffffff;
+    margin-block: 1.75rem;
+    margin-inline: 0;
+    padding: 24px 28px;
+    border-radius: 16px;
+    font-style: normal;
+  }
+
+  .blog-post-content blockquote * {
+    color: inherit;
+  }
+
+  .blog-post-content blockquote p {
+    margin: 0 0 0.5rem;
+  }
+
+  .blog-post-content blockquote p:last-child {
+    margin-bottom: 0;
+  }
+
+  .blog-post-content a {
+    color: var(--dalbe-navy) !important;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  /* Yellow callout: warnings/tips/checklists (<aside>, no class needed —
+     plain semantic tags are what reliably survive Article body content,
+     unlike theme section "text" settings which strip inline style). */
+  .blog-post-content aside {
+    background: #fdf3d7;
+    border-inline-start: 4px solid var(--dalbe-red);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin-block: 1.75rem;
+  }
+
+  .blog-post-content aside h3,
+  .blog-post-content aside h4 {
+    margin-block-start: 0;
+  }
+
+  .blog-post-content aside p:last-child,
+  .blog-post-content aside ol:last-child,
+  .blog-post-content aside ul:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Gray product-recommendation card with a CTA button (<figure>,
+     repurposed purely as a distinct, universally-allowed tag to hook
+     CSS onto — not used for actual images here). */
+  .blog-post-content figure {
+    background: #f4f5f9;
+    border-inline-start: 4px solid var(--dalbe-red);
+    border-radius: 0 16px 16px 0;
+    padding: 24px 28px;
+    margin-block: 1.75rem;
+    margin-inline: 0;
+  }
+
+  .blog-post-content figure h3,
+  .blog-post-content figure h4 {
+    margin-block-start: 0;
+  }
+
+  /* Direct-child only — the CTA button, not the inline category link
+     that also lives inside the figure's body paragraph. */
+  .blog-post-content figure > a {
+    display: inline-block;
+    margin-block-start: 12px;
+    padding: 12px 24px;
+    background: var(--dalbe-red);
+    color: #ffffff !important;
+    font-weight: 700;
+    border-radius: 999px;
+    text-decoration: none !important;
+  }
+
+  .blog-post-content figure > a:hover {
+    opacity: 0.85;
+  }
+
+  /* Full-width navy conclusion block with CTA button (<aside> containing
+     an <h2> — the only aside variant that does, since the yellow tip
+     boxes only ever use h3/h4 — used as a stable hook instead of a
+     class, which Article body content doesn't reliably keep). */
+  .blog-post-content aside:has(h2) {
+    background: var(--dalbe-navy);
+    border-inline-start: none;
+    border-radius: 8px;
+    padding: 40px;
+    margin-block: 3rem 0;
+  }
+
+  .blog-post-content aside:has(h2) * {
+    color: #ffffff;
+  }
+
+  .blog-post-content aside:has(h2) h2 {
+    margin-block-start: 0;
+    padding-block-end: 0;
+    border-block-end: none;
+  }
+
+  .blog-post-content aside:has(h2) p a {
+    color: var(--dalbe-red) !important;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  .blog-post-content aside:has(h2) > a {
+    display: inline-block;
+    margin-block-start: 20px;
+    padding: 15px 30px;
+    background: var(--dalbe-red);
+    color: #ffffff !important;
+    font-weight: 600;
+    border-radius: 5px;
+    text-decoration: none !important;
+  }
+
+  .blog-post-content aside:has(h2) > a:hover {
+    background: #ffffff;
+    color: var(--dalbe-navy) !important;
+  }
+
+  /* dalbe: Contact page (templates/page.contact.json). The info cards and
+     the form card both use plain group blocks (no native shadow setting
+     in Horizon), so a matching shadow is added here to keep them visually
+     consistent with the rest of the site's card treatment (blog-post-card,
+     product-card figures, etc.). */
+  [class*="__card-contact"],
+  [class*="__card-showroom"],
+  [class*="__card-hours"],
+  [class*="__form-card"] {
+    box-shadow: 0 2px 8px rgba(19, 31, 93, 0.06);
+  }
+
+  /* dalbe: custom-liquid blocks render with no .shopify-block wrapper
+     (schema sets "tag": null) — the block's own <div> is a bare flex
+     item with no width/flex-basis, so it shrinks to the iframe's
+     intrinsic size (~300px) instead of stretching to the section's
+     width, leaving the iframe's own `width: 100%` nothing to resolve
+     against. Scoped to this specific embed rather than editing the
+     stock custom-liquid.liquid block, since that block is shared
+     theme-wide. */
+  div:has(> iframe[src*="maps.google.com"]) {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  /* dalbe: contact page map — wider than the theme's normal page-width
+     column but still short of edge-to-edge full-width. --page-width is
+     set directly (not derived from --page-content-width at this
+     element), so it has to be overridden itself — it's what
+     --full-page-grid-central-column-width actually reads. */
+  .section[class*="__map"] {
+    --page-width: 1500px;
   }
 {% endstyle %}

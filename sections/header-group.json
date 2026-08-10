@@ -16,56 +16,62 @@
       "settings": {
         "search_placeholder": "Cauta in catalogul nostru",
         "phone_label": "Suport Telefonic",
-        "phone_number": "+40 376 509 140",
-        "quote_label": "Cere oferta",
-        "quote_link": "/pages/404-placeholder"
+        "phone_number": "+40 376 509 140"
       }
     },
     "dalbe_category_nav": {
       "type": "dalbe-category-nav",
       "blocks": {
-        "link_raportare": {
+        "link_promotii": {
           "type": "link",
           "settings": {
-            "label": "Raportare Reactie Adversa",
-            "link": "/pages/404-placeholder"
+            "label": "Promotiile saptamanii",
+            "link": "/collections/promoțiile-saptamanii"
           }
         },
-        "link_hub": {
+        "link_clinica": {
           "type": "link",
           "settings": {
-            "label": "Hub",
-            "link": "/pages/404-placeholder"
+            "label": "Clinica la cheie",
+            "link": "/pages/clinica-la-cheie"
           }
         },
-        "link_cataloage": {
+        "link_branduri": {
           "type": "link",
           "settings": {
-            "label": "Cataloage",
-            "link": "/pages/404-placeholder"
+            "label": "Branduri",
+            "link": "/pages/branduri"
           }
         },
-        "link_companie": {
+        "link_articole": {
           "type": "link",
           "settings": {
-            "label": "Companie",
-            "link": "/pages/404-placeholder"
+            "label": "Articole",
+            "link": "/blogs/news"
           }
         },
         "link_contact": {
           "type": "link",
           "settings": {
             "label": "Contact",
-            "link": "/pages/404-placeholder"
+            "link": "/pages/contact"
+          }
+        },
+        "link_ghid_client": {
+          "type": "link_dropdown",
+          "settings": {
+            "label": "Ghid Client",
+            "link": "/pages/cine-suntem"
           }
         }
       },
       "block_order": [
-        "link_raportare",
-        "link_hub",
-        "link_cataloage",
-        "link_companie",
-        "link_contact"
+        "link_promotii",
+        "link_clinica",
+        "link_branduri",
+        "link_articole",
+        "link_contact",
+        "link_ghid_client"
       ],
       "settings": {
         "trigger_label": "Categorii",
