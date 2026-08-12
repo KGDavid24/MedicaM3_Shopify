@@ -60,7 +60,7 @@
        images' own native aspect ratio directly against this element's
        own (grid-determined) width. Overridden by the calc() below at
        the nav's own >=990px breakpoint. */
-    aspect-ratio: 1248 / 439;
+    aspect-ratio: 1920 / 640;
   }
 
   /* dalbe: the category-nav sidebar (280px) permanently overlays the left
@@ -103,22 +103,28 @@
     }
 
     .dalbe-hero-slideshow__slideshow {
-      /* dalbe: height is whichever is taller — the content column's own
-         width-derived height, or 25.3rem (the nav sidebar's snug content
-         height — see dalbe-category-nav.liquid, padding trimmed there to
-         bring this floor down as far as reasonably possible first). Below
-         that floor, width: auto + aspect-ratio grows the box past its
-         column's own width to reach it. justify-self: center (not the
-         grid item default of stretch, and not start) means that growth is
-         split evenly left and right instead of anchored to the left edge:
-         the left half extends under the always-visible sidebar (harmless
-         — the sidebar already opaquely covers that area) so only the
-         right half's excess needs to be clipped, roughly halving how much
-         of the image is lost compared to growing rightward only. */
-      height: max(calc(var(--dalbe-content-width) * 439 / 1248), 25.3rem);
-      width: auto;
-      aspect-ratio: 1248 / 439;
-      justify-self: center;
+      /* dalbe: width is pinned to exactly the content column's own width —
+         never wider, never narrower — so this box's right edge always
+         lines up with the USP bar directly below it (dalbe-utility-links.
+         liquid), which fills the same column edge-to-edge with no overflow
+         of its own. Height then just follows from that fixed width via the
+         aspect-ratio, matching slide creative's real ~3:1 canvas exactly
+         (see the base aspect-ratio above), so the image is never cropped
+         left/right OR top/bottom by object-fit:cover — no growth-beyond-
+         the-column mechanism is left to fight over which edge absorbs it.
+
+         Tradeoff: earlier versions of this rule also enforced a 25.3rem
+         minimum height to match the nav sidebar's own height at narrow
+         >=990px widths, growing the box wider than its column to reach it.
+         That's gone now — at the narrow end of >=990px content-widths the
+         hero can come out shorter than the sidebar. If that ever looks too
+         squat in practice, the fix belongs on the height side (e.g. a
+         modest floor applied without letting width exceed the column), not
+         by reintroducing width overflow, which is what broke alignment
+         with the USP bar here. */
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1920 / 640;
     }
   }
 

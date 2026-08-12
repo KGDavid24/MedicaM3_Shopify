@@ -319,13 +319,17 @@
 
   /* dalbe: custom-liquid blocks render with no .shopify-block wrapper
      (schema sets "tag": null) — the block's own <div> is a bare flex
-     item with no width/flex-basis, so it shrinks to the iframe's
-     intrinsic size (~300px) instead of stretching to the section's
-     width, leaving the iframe's own `width: 100%` nothing to resolve
-     against. Scoped to this specific embed rather than editing the
-     stock custom-liquid.liquid block, since that block is shared
+     item with no width/flex-basis, so it shrinks to its content's
+     intrinsic size instead of stretching to the section's width. That
+     breaks two things: the map iframe's own `width: 100%` has nothing
+     to resolve against, and any inner `justify-content: center` (like
+     the NoGag feature-card icons) has no extra space to center within.
+     Scoped to custom-liquid's actual output shapes rather than editing
+     the stock custom-liquid.liquid block, since that block is shared
      theme-wide. */
-  div:has(> iframe[src*="maps.google.com"]) {
+  div:has(> iframe[src*="maps.google.com"]),
+  div:has(> div > svg),
+  div:has(> .dalbe-nogag-compare) {
     width: 100%;
     align-self: stretch;
   }
@@ -337,5 +341,204 @@
      --full-page-grid-central-column-width actually reads. */
   .section[class*="__map"] {
     --page-width: 1500px;
+  }
+
+  /* dalbe: NoGag page's 2 reveal cards ("cards" section) — a dedicated
+     navy/red palette layered on top of the shared dalbe-process-steps
+     component, scoped to this page's section id so Clinica la cheie's
+     own (unstyled-panel) use of the same detailed-mode component is
+     unaffected. */
+  [id*="__cards"] .dalbe-process-steps__item-content {
+    background: var(--dalbe-navy);
+    padding: 28px !important;
+  }
+
+  [id*="__cards"] .dalbe-process-steps__item-content * {
+    color: #ffffff;
+  }
+
+  [id*="__cards"] .dalbe-process-steps__body ul,
+  [id*="__cards"] .dalbe-process-steps__body ol {
+    margin: 0 0 var(--margin-sm);
+    padding-inline-start: 1.25em;
+  }
+
+  [id*="__cards"] .dalbe-process-steps__body li {
+    margin-block-end: 4px;
+  }
+
+  [id*="__cards"] .dalbe-process-steps__body p {
+    margin: 0 0 var(--margin-xs, 8px);
+  }
+
+  [id*="__cards"] .dalbe-process-steps__number {
+    background: var(--dalbe-red);
+  }
+
+  /* "Cum se folosește" step's 3-icon composite (custom_media override on
+     dalbe-process-step, since the block's normal media slot only takes a
+     single image) — navy panel with 3 white circular photo badges,
+     matching the real site's 3-illustration media side. */
+  .dalbe-nogag-howto-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 3vw, 32px);
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    background: var(--dalbe-navy);
+    padding: 24px;
+    box-sizing: border-box;
+  }
+
+  .dalbe-nogag-howto-media__circle {
+    flex: 0 1 160px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #ffffff;
+    overflow: hidden;
+  }
+
+  .dalbe-nogag-howto-media__circle img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  @media screen and (max-width: 749px) {
+    .dalbe-nogag-howto-media__circle {
+      flex-basis: 100px;
+    }
+  }
+
+  /* NoGag "Validare Științifică" section — plain static content (no
+     scroll-reveal animation, unlike the two dalbe-process-steps cards
+     above it), just a small navy accent bar on the heading and tighter
+     list spacing to match the real site's plain bullet list. */
+  [id*="__validation"] h2 {
+    border-inline-start: 4px solid var(--dalbe-navy);
+    padding-inline-start: 12px;
+  }
+
+  [id*="__validation"] ul {
+    margin: 0 0 var(--margin-sm, 8px);
+    padding-inline-start: 1.25em;
+  }
+
+  [id*="__cards"] .dalbe-process-steps__cta.button {
+    background: var(--dalbe-red);
+    border-color: var(--dalbe-red);
+    color: #ffffff !important;
+  }
+
+  /* NoGag "NoGag vs. Anestezie locală" comparison — two side-by-side
+     mini tables (not a single merged 4-column table), matching the real
+     site's layout: a solid header bar per table, zebra-striped rows
+     below it. */
+  .dalbe-nogag-compare {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .dalbe-nogag-compare__table {
+    flex: 1 1 320px;
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .dalbe-nogag-compare__table th {
+    background: var(--dalbe-navy);
+    color: #ffffff;
+    text-align: left;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    padding: 16px 20px;
+  }
+
+  .dalbe-nogag-compare__table td {
+    padding: 14px 20px;
+    color: var(--dalbe-text, #222222);
+  }
+
+  .dalbe-nogag-compare__table td:first-child {
+    font-weight: 600;
+  }
+
+  .dalbe-nogag-compare__table td:last-child {
+    text-align: right;
+  }
+
+  .dalbe-nogag-compare__table tbody tr:nth-child(even) {
+    background: #f4f5f9;
+  }
+
+  /* Wider than the theme's normal page-width column so each table's
+     value column has room to breathe instead of wrapping labels like
+     "Necesită supraveghere?" onto two lines. Same override technique as
+     the contact page's map section. */
+  .section[class*="__comparison"] {
+    --page-width: 1700px;
+  }
+
+  /* NoGag FAQ accordion — real color/weight instead of Horizon's plain
+     text-on-white default: gray rows at rest, navy fill + white text on
+     the open row, matching the real site's treatment. */
+  [id*="__faq"] .details {
+    background: #f4f5f9;
+    border-radius: 12px;
+    margin-block-end: 12px;
+    overflow: hidden;
+    transition: background-color var(--animation-speed-slow, 0.4s) var(--animation-easing, ease);
+  }
+
+  [id*="__faq"] .details[open] {
+    background: var(--dalbe-navy);
+  }
+
+  /* The accordion component only animates open/close for the item the
+     user directly interacted with (:focus-within) — when our exclusive-
+     accordion script force-closes the OTHER open item, it has no focus
+     and so has no transition, snapping shut instantly while the newly
+     opened one animates smoothly. That mismatch is what reads as
+     "jumpy". Force the transition on regardless of focus, scoped to
+     this page's FAQ only. */
+  [id*="__faq"] .details:not(:focus-within) .details-content {
+    transition:
+      content-visibility var(--animation-speed-slow) allow-discrete,
+      padding-block var(--animation-speed-slow) var(--animation-easing),
+      opacity var(--animation-speed-slow) var(--animation-easing),
+      block-size var(--animation-speed-slow) var(--animation-easing) !important;
+  }
+
+  [id*="__faq"] .details[open] * {
+    color: #ffffff;
+  }
+
+  [id*="__faq"] .details__header {
+    padding: 18px 24px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  [id*="__faq"] .details-content {
+    padding-inline: 24px;
+    padding-block: 4px 20px;
+  }
+
+  [id*="__faq"] .details-content > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: 0 !important;
+  }
+
+  [id*="__faq"] .details-content p {
+    margin: 0;
+    text-align: left;
+    font-weight: 400;
+    line-height: 1.6;
   }
 {% endstyle %}

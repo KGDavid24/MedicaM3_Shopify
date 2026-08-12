@@ -6,7 +6,8 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */{
+ */
+{
   "sections": {
     "hero": {
       "type": "hero",
@@ -15,10 +16,10 @@
           "type": "text",
           "settings": {
             "text": "<h1>Articole - Informații de Sănătate de la Specialiști</h1>",
+            "max_width": "none",
             "type_preset": "custom",
             "font_size": "2rem",
             "text_color": "#ffffff",
-            "max_width": "none",
             "padding-inline-start": 60,
             "padding-inline-end": 60
           }
@@ -27,28 +28,31 @@
           "type": "text",
           "settings": {
             "text": "<p>Aici găsești articole medicale scrise de medicii și specialiștii clinicii Medicam3. Ne dorim să îți oferim informații clare, de încredere și ușor de înțeles despre o gamă largă de afecțiuni, tratamente și metode de prevenție.</p>",
+            "max_width": "none",
             "type_preset": "custom",
             "font_size": "1.25rem",
             "text_color": "#ffffff",
-            "max_width": "none",
             "padding-inline-start": 60,
             "padding-inline-end": 60
           }
         }
       },
-      "block_order": ["text_1", "text_2"],
+      "block_order": [
+        "text_1",
+        "text_2"
+      ],
       "settings": {
+        "media_type_1": "image",
+        "image_1": "shopify://shop_images/dalbe-articole-hero.webp",
         "horizontal_alignment_flex_direction_column": "center",
         "gap": 16,
         "section_width": "full-width",
         "section_height": "auto",
-        "padding-block-start": 64,
-        "padding-block-end": 64,
-        "media_type_1": "image",
-        "image_1": "shopify://shop_images/dalbe-articole-hero.webp",
         "toggle_overlay": true,
+        "overlay_color": "#131f5da8",
         "overlay_style": "solid",
-        "overlay_color": "#131f5da8"
+        "padding-block-start": 64,
+        "padding-block-end": 64
       }
     },
     "main": {
@@ -112,7 +116,6 @@
           "block_order": []
         }
       },
-      "block_order": [],
       "settings": {
         "background_color": "{{ settings.color_palette.background }}",
         "padding-block-start": 48,

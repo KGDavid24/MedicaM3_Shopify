@@ -31,7 +31,11 @@
 <li class="dalbe-process-steps__item dalbe-process-steps__item--image-{{ image_side }}" {{ block.shopify_attributes }}>
   {% if display_mode == 'detailed' %}<dalbe-reveal-on-scroll class="dalbe-process-steps__reveal" data-media-side="{{ image_side }}">{% endif %}
 
-  {% if display_mode == 'detailed' and block.settings.image != blank %}
+  {% if display_mode == 'detailed' and block.settings.custom_media != blank %}
+    <div class="dalbe-process-steps__media dalbe-process-steps__media--custom">
+      {{ block.settings.custom_media }}
+    </div>
+  {% elsif display_mode == 'detailed' and block.settings.image != blank %}
     <div class="dalbe-process-steps__media">
       {{ block.settings.image | image_url: width: 800 | image_tag: loading: 'lazy', alt: block.settings.title, sizes: '(min-width: 990px) 50vw, 100vw', widths: '400,600,800,1200' }}
     </div>
@@ -85,6 +89,12 @@
       "id": "image",
       "label": "Photo (detailed mode)",
       "info": "Shown alongside the body copy, alternating sides by position."
+    },
+    {
+      "type": "liquid",
+      "id": "custom_media",
+      "label": "Custom media (detailed mode)",
+      "info": "Raw HTML/liquid for the media side — takes over from Photo above when filled in, for steps that need more than a single image (e.g. a composite of several icons)."
     },
     {
       "type": "header",
