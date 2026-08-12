@@ -1,0 +1,198 @@
+{%- doc -%}
+  Reusable NoGag promo banner — a compact version of the branded strip used
+  on the NoGag landing page's own hero-style content, meant to be dropped
+  into any template (homepage, other pages, blog posts) as a cross-sell to
+  the landing page, not a direct-buy widget — no price shown here.
+{%- enddoc -%}
+
+{% liquid
+  assign product = section.settings.product
+  assign cta_link = section.settings.cta_link
+  if cta_link == blank
+    assign cta_link = '/pages/nogag-reflex-control'
+  endif
+%}
+
+<div class="dalbe-nogag-promo">
+  <div class="dalbe-nogag-promo__media">
+    {% if section.settings.image %}
+      {{ section.settings.image | image_url: width: 800 | image_tag: loading: 'lazy', class: 'dalbe-nogag-promo__img' }}
+    {% elsif product.featured_image %}
+      {{ product.featured_image | image_url: width: 800 | image_tag: loading: 'lazy', class: 'dalbe-nogag-promo__img' }}
+    {% elsif section.settings.placeholder_asset != blank %}
+      <img src="{{ section.settings.placeholder_asset | asset_url }}" alt="{{ section.settings.heading }}" loading="lazy" class="dalbe-nogag-promo__img">
+    {% endif %}
+  </div>
+
+  <div class="dalbe-nogag-promo__content">
+    {% if section.settings.badge_text != blank %}
+      <span class="dalbe-nogag-promo__badge">{{ section.settings.badge_text }}</span>
+    {% endif %}
+
+    <h2 class="dalbe-nogag-promo__heading">{{ section.settings.heading }}</h2>
+
+    {% if section.settings.subheading != blank %}
+      <p class="dalbe-nogag-promo__subheading">{{ section.settings.subheading }}</p>
+    {% endif %}
+
+    {% if cta_link != blank and section.settings.cta_label != blank %}
+      <a href="{{ cta_link }}" class="dalbe-nogag-promo__cta">
+        {{ section.settings.cta_label }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .dalbe-nogag-promo {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr;
+    background: var(--dalbe-navy);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  @media screen and (min-width: 750px) {
+    .dalbe-nogag-promo {
+      grid-template-columns: 1fr 1fr;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+
+    .dalbe-nogag-promo > * {
+      border-radius: 0;
+    }
+  }
+
+  .dalbe-nogag-promo__media {
+    position: relative;
+    min-height: 220px;
+    background: #0d1543;
+  }
+
+  .dalbe-nogag-promo__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .dalbe-nogag-promo__content {
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .dalbe-nogag-promo__badge {
+    display: inline-block;
+    background: var(--dalbe-red);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+
+  .dalbe-nogag-promo__heading {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .dalbe-nogag-promo__subheading {
+    color: #c7cbe6;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 40ch;
+  }
+
+  .dalbe-nogag-promo__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--dalbe-red);
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 999px;
+    margin-block-start: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .dalbe-nogag-promo__cta:hover {
+    background: #c92440;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "NoGag - Promo banner",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Produs NoGag",
+      "info": "Folosit doar ca sursă implicită pentru imagine, dacă nu alegi una mai jos."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Imagine (implicit: imaginea produsului)"
+    },
+    {
+      "type": "text",
+      "id": "placeholder_asset",
+      "label": "Imagine placeholder (asset din temă)",
+      "info": "Folosită doar dacă nu e ales niciun produs sau imagine."
+    },
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Etichetă",
+      "default": "Best-seller · Consumabile"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titlu",
+      "default": "NoGag – Reflex Control"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subtitlu",
+      "default": "Reflexul de vomă oprit în 10 secunde. Cel mai cumpărat consumabil din portofoliul MedicaM3 — utilizat zilnic în cabinete, clinici și spitale."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Text buton",
+      "default": "Află mai multe"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Link buton (implicit: pagina de prezentare NoGag)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "NoGag - Promo banner"
+    }
+  ]
+}
+{% endschema %}
