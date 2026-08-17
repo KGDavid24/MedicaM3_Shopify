@@ -58,10 +58,31 @@
           <ul class="dalbe-brand-directory__group list-unstyled">
           {% assign current_letter = letter %}
         {% endif %}
+        {% liquid
+          assign brand_initial = value.label | slice: 0, 1 | upcase
+          assign matched_logo = null
+          for logo_entry in metaobjects.brand_logo.values
+            if logo_entry.name.value == value.label
+              assign matched_logo = logo_entry
+              break
+            endif
+          endfor
+          assign encoded_vendor = value.label | url_encode
+          assign card_href = routes.all_products_collection_url | append: '?filter.p.vendor=' | append: encoded_vendor
+        %}
         <li class="dalbe-brand-directory__item">
-          <a href="{{ value.url_to_add }}" class="dalbe-brand-directory__link">
-            <span>{{ value.label }}</span>
-            <span class="dalbe-brand-directory__count">{{ value.count }}</span>
+          <a href="{{ card_href }}" class="dalbe-brand-directory__card">
+            <span class="dalbe-brand-directory__logo">
+              {% if matched_logo and matched_logo.logo.value %}
+                {{ matched_logo.logo.value | image_url: width: 240 | image_tag: class: 'dalbe-brand-directory__logo-img', loading: 'lazy', alt: value.label }}
+              {% else %}
+                <span class="dalbe-brand-directory__placeholder">{{ brand_initial }}</span>
+              {% endif %}
+            </span>
+            <span class="dalbe-brand-directory__info">
+              <span class="dalbe-brand-directory__name">{{ value.label }}</span>
+              <span class="dalbe-brand-directory__count">{{ value.count }} produse</span>
+            </span>
           </a>
         </li>
       {% endfor %}
@@ -71,14 +92,35 @@
     <ul class="dalbe-brand-directory__list dalbe-brand-directory__list--manual list-unstyled">
       {% for block in section.blocks %}
         {% if block.type == 'dalbe-brand-entry' %}
+          {% liquid
+            assign brand_initial = block.settings.name | slice: 0, 1 | upcase
+          %}
           <li class="dalbe-brand-directory__item" {{ block.shopify_attributes }}>
             {% if block.settings.url != blank %}
-              <a href="{{ block.settings.url }}" class="dalbe-brand-directory__link">
-                <span>{{ block.settings.name }}</span>
+              <a href="{{ block.settings.url }}" class="dalbe-brand-directory__card">
+                <span class="dalbe-brand-directory__logo">
+                  {% if block.settings.logo %}
+                    {{ block.settings.logo | image_url: width: 240 | image_tag: class: 'dalbe-brand-directory__logo-img', loading: 'lazy', alt: block.settings.name }}
+                  {% else %}
+                    <span class="dalbe-brand-directory__placeholder">{{ brand_initial }}</span>
+                  {% endif %}
+                </span>
+                <span class="dalbe-brand-directory__info">
+                  <span class="dalbe-brand-directory__name">{{ block.settings.name }}</span>
+                </span>
               </a>
             {% else %}
-              <span class="dalbe-brand-directory__link dalbe-brand-directory__link--static">
-                <span>{{ block.settings.name }}</span>
+              <span class="dalbe-brand-directory__card dalbe-brand-directory__card--static">
+                <span class="dalbe-brand-directory__logo">
+                  {% if block.settings.logo %}
+                    {{ block.settings.logo | image_url: width: 240 | image_tag: class: 'dalbe-brand-directory__logo-img', loading: 'lazy', alt: block.settings.name }}
+                  {% else %}
+                    <span class="dalbe-brand-directory__placeholder">{{ brand_initial }}</span>
+                  {% endif %}
+                </span>
+                <span class="dalbe-brand-directory__info">
+                  <span class="dalbe-brand-directory__name">{{ block.settings.name }}</span>
+                </span>
               </span>
             {% endif %}
           </li>
@@ -105,9 +147,10 @@
     margin-block-end: var(--margin-xl);
     position: sticky;
     top: var(--header-group-height, 0px);
-    background: var(--color-background);
+    background: var(--dalbe-navy);
+    border-radius: 8px;
     z-index: 1;
-    padding-block: var(--padding-sm);
+    padding: var(--padding-sm) 12px;
   }
 
   .dalbe-brand-directory__jump-link {
@@ -117,14 +160,14 @@
     width: 28px;
     height: 28px;
     border-radius: 4px;
-    color: var(--dalbe-navy);
+    color: #fff;
     text-decoration: none;
     font-weight: 700;
     font-size: 0.8125rem;
   }
 
   .dalbe-brand-directory__jump-link:hover {
-    background: rgb(19 31 93 / 0.08);
+    background: rgba(255, 255, 255, 0.15);
   }
 
   .dalbe-brand-directory__letter {
@@ -138,42 +181,94 @@
   .dalbe-brand-directory__list--manual {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 4px var(--gap-lg);
-    margin: 0;
+    gap: 20px;
+    margin: 0 0 8px;
     padding: 0;
     list-style: none;
   }
 
-  .dalbe-brand-directory__link {
+  .dalbe-brand-directory__item {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--gap-xs);
-    padding-block: 4px;
-    color: var(--dalbe-text, #222222);
-    text-decoration: none;
   }
 
-  .dalbe-brand-directory__link:hover {
+  .dalbe-brand-directory__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 10px;
+    text-decoration: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  a.dalbe-brand-directory__card:hover {
+    border-color: var(--dalbe-navy);
+    box-shadow: 0 8px 20px rgba(19, 31, 93, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .dalbe-brand-directory__logo {
+    width: 120px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dalbe-brand-directory__logo-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .dalbe-brand-directory__placeholder {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #f3f4f6;
     color: var(--dalbe-navy);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dalbe-brand-directory__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .dalbe-brand-directory__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 4px;
   }
 
   .dalbe-brand-directory__count {
-    color: var(--color-foreground-secondary, #666666);
-    font-size: 0.8125rem;
+    font-size: 13px;
+    color: #9ca3af;
+    font-weight: 400;
   }
 
   @media screen and (max-width: 989px) {
     .dalbe-brand-directory__group,
     .dalbe-brand-directory__list--manual {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
     }
   }
 
   @media screen and (max-width: 749px) {
     .dalbe-brand-directory__group,
     .dalbe-brand-directory__list--manual {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
   }
 {% endstylesheet %}
@@ -217,6 +312,12 @@
           "type": "text",
           "id": "name",
           "label": "Brand name"
+        },
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo",
+          "info": "Optional — falls back to a letter-avatar circle (matching medicam3.ro's own treatment for brands without an uploaded logo) if left blank."
         },
         {
           "type": "url",

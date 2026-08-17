@@ -541,4 +541,312 @@
     font-weight: 400;
     line-height: 1.6;
   }
+
+  /* dalbe: collection page filter sidebar reskin. Scoped to <results-list>
+     (dalbe-collection.liquid's own root element, forked from Horizon's
+     main-collection) — this markup only ever renders on the collection
+     template. The product cards themselves are fully custom markup with
+     their own scoped styles in dalbe-collection.liquid directly; this block
+     is just for Horizon's native vertical filters sidebar, which is kept
+     as real, working native filtering/sorting/pagination — visual reskin
+     only, matching the navy/red brand language used everywhere else. */
+  results-list.product-grid-container .facets--vertical {
+    background: #fff;
+    border: 1px solid #eef0f5;
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  results-list.product-grid-container .facets__summary {
+    color: var(--dalbe-navy);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    padding-block: 12px;
+  }
+
+  results-list.product-grid-container .facets__label {
+    color: var(--dalbe-navy);
+    font-weight: 700;
+  }
+
+  results-list.product-grid-container .facets__panel:not(:last-child) {
+    border-block-end: 1px solid #eef0f5;
+  }
+
+  results-list.product-grid-container .facets input[type="checkbox"]:checked,
+  results-list.product-grid-container .facets input[type="radio"]:checked {
+    accent-color: var(--dalbe-red);
+  }
+
+  results-list.product-grid-container .facets-vertical-sort select,
+  results-list.product-grid-container .facets a {
+    color: var(--dalbe-navy);
+  }
+
+  results-list.product-grid-container .facets__clear-all-link {
+    color: var(--dalbe-red) !important;
+  }
+
+  /* dalbe: shared, global product card design -- single source of truth for
+     every "product card" on the site (collection grid, homepage carousels,
+     product recommendations, cart/404 "you may also like", search results).
+     Lives here (rendered globally from layout/theme.liquid) rather than in
+     any one section's own stylesheet block, since Shopify sections can't
+     share a stylesheet with each other and this design now needs to be
+     available in many different section/block files at once. Markup comes
+     from snippets/dalbe-product-card.liquid. */
+  .dalbe-product-card {
+    position: relative;
+    height: 100%;
+    background: #fff;
+    border: 1px solid #eef0f5;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(19, 31, 93, 0.06);
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .dalbe-product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--dalbe-navy);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+
+  .dalbe-product-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--dalbe-navy);
+    box-shadow: 0 10px 24px rgba(19, 31, 93, 0.14);
+  }
+
+  .dalbe-product-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .dalbe-product-card__badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    background: var(--dalbe-red);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .dalbe-product-card__badge--sold-out {
+    background: #6b7280;
+  }
+
+  .dalbe-product-card__link {
+    text-decoration: none;
+    display: block;
+  }
+
+  .dalbe-product-card__img-wrap {
+    width: calc(100% + 32px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: -16px -16px 12px;
+    padding: 16px;
+    background: linear-gradient(180deg, #f4f5fb 0%, #eceefa 100%);
+  }
+
+  .dalbe-product-card__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.25s ease;
+  }
+
+  .dalbe-product-card:hover .dalbe-product-card__img-wrap img {
+    transform: scale(1.05);
+  }
+
+  .dalbe-product-card__name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #2d3748;
+    line-height: 1.35;
+    margin: 0 0 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.7em;
+    transition: color 0.2s ease;
+  }
+
+  .dalbe-product-card:hover .dalbe-product-card__name {
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-product-card__price {
+    color: var(--dalbe-navy);
+    font-size: 1.0625rem;
+    font-weight: 800;
+    margin: 0 0 12px;
+  }
+
+  .dalbe-product-card__price del {
+    color: #9aa1b3;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: line-through;
+    margin-inline-end: 4px;
+    display: inline-block;
+  }
+
+  .dalbe-product-card__price ins {
+    color: var(--dalbe-red);
+    text-decoration: none;
+  }
+
+  .dalbe-product-card__bottom {
+    margin-top: auto;
+  }
+
+  .dalbe-product-card__form,
+  .dalbe-product-card__form product-form-component {
+    display: block;
+    width: 100%;
+  }
+
+  .dalbe-product-card .add-to-cart-button {
+    width: 100%;
+    background: var(--dalbe-red) !important;
+    color: #fff !important;
+    border-radius: 999px !important;
+    font-size: 0.8125rem !important;
+    font-weight: 700 !important;
+    padding: 10px 14px !important;
+    border: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .dalbe-product-card .add-to-cart-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* dalbe: product page (PDP) "pop" reskin -- global CSS layer on top of the
+     native product-information section, which stays fully in place for all
+     commerce logic (variant picker, buy buttons, checkout, gift cards,
+     sticky add to cart). Only visuals are overridden here. */
+  .product-information__media media-gallery {
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .product-information__media .product-media-container {
+    border-radius: 18px;
+    background: linear-gradient(180deg, #f4f5fb 0%, #eceefa 100%);
+  }
+
+  .product-details div:has(> .compare-at-price) > .price-item__group.price:not(.price-item--regular) {
+    color: var(--dalbe-red);
+  }
+
+  .product-details .compare-at-price {
+    color: #9aa1b3;
+    font-weight: 500;
+  }
+
+  .product-inventory__text {
+    font-weight: 600;
+  }
+
+  .product-details .variant-option__button-label__pill {
+    border-radius: 999px !important;
+  }
+
+  .product-details .buy-buttons .add-to-cart-button {
+    border-radius: 999px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 10px 24px rgba(233, 50, 78, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .product-details .buy-buttons .add-to-cart-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(233, 50, 78, 0.32);
+  }
+
+  .product-details .icon-block {
+    background: var(--dalbe-navy);
+    border-radius: 50%;
+    padding: 10px;
+  }
+
+  .product-details .text-block.rte {
+    line-height: 1.7;
+  }
+
+  .product-details .text-block.rte :is(h1, h2, h3, h4, h5, h6) {
+    color: var(--dalbe-navy);
+  }
+
+  .product-details .text-block.rte strong,
+  .product-details .text-block.rte b {
+    color: var(--dalbe-navy);
+  }
+
+  .product-details .text-block.rte ul,
+  .product-details .text-block.rte ol {
+    padding-inline-start: 1.2em;
+  }
+
+  .product-details .text-block.rte li::marker {
+    color: var(--dalbe-red);
+  }
+
+  .dalbe-product-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dalbe-product-brand__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .dalbe-product-brand__logo {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .dalbe-product-brand__logo img {
+    display: block;
+    width: auto;
+    height: 44px;
+    max-width: 160px;
+    object-fit: contain;
+  }
+
+  .dalbe-product-brand__name {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dalbe-red);
+  }
 {% endstyle %}

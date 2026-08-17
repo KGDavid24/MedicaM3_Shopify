@@ -1,0 +1,447 @@
+﻿{%- doc -%}
+  Fork of Horizon's stock main-collection.liquid. Keeps 100% of the native
+  filtering/sorting/pagination/infinite-scroll machinery (the `filters`
+  block content_for call, the product-grid snippet, the collection-component/
+  results-list custom elements) completely untouched â€” only the per-product
+  card markup inside the loop is replaced with fully custom dalbe- markup,
+  matching the card design already established for the homepage carousel
+  (dalbe-product-carousel.liquid) instead of Horizon's generic native card.
+{%- enddoc -%}
+
+<script
+  src="{{ 'results-list.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+{% javascript %}
+  const url = new URL(window.location.href);
+  if (url.hash) {
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => {
+        const card = document.getElementById(url.hash.slice(1));
+        if (card) {
+          card.scrollIntoView({ behavior: 'instant' });
+        }
+      },
+      { once: true }
+    );
+  }
+{% endjavascript %}
+
+{% liquid
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+%}
+
+{% render 'collection-wrapper-styles' %}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+{% # theme-check-disable-next-line UnknownFilter %}
+<collection-component view-event-payload="{{ collection | standard_event_data: 'view' | escape }}">
+  <results-list
+    class="section product-grid-container{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+    style="--padding-block-start: {{ section.settings.padding-block-start }}px; --padding-block-end: {{ section.settings.padding-block-end }}px;"
+    section-id="{{ section.id }}"
+    infinite-scroll="{{ section.settings.enable_infinite_scroll }}"
+  >
+    {% render 'skip-to-content-link', href: '#ResultsList', text: 'accessibility.skip_to_results_list' %}
+
+    <div
+      class="collection-wrapper grid gap-style{% if section.settings.product_grid_width == 'full-width' %} collection-wrapper--grid-full-width{% endif %}"
+    >
+      {% content_for 'block',
+        type: 'filters',
+        id: 'filters',
+        results: collection,
+        results_size: collection.products_count
+      %}
+
+      <div class="dalbe-collection-view-toggle" id="dalbe-view-toggle-{{ section.id }}">
+        <button type="button" class="dalbe-collection-view-toggle__btn" data-view="grid" aria-label="Vizualizare grilÄƒ" aria-pressed="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </button>
+        <button type="button" class="dalbe-collection-view-toggle__btn" data-view="list" aria-label="Vizualizare listÄƒ" aria-pressed="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+      </div>
+
+      <script>
+        (function () {
+          var root = document.getElementById('dalbe-view-toggle-{{ section.id }}');
+          if (!root) return;
+          var resultsList = root.closest('results-list');
+          var storageKey = 'dalbe-collection-view';
+
+          // Horizon renders more than one .products-count-wrapper (a visible
+          // desktop one plus a hidden mobile-drawer duplicate sharing the
+          // same class) â€” grabbing the first match can silently relocate
+          // this toggle into the hidden copy. Only relocate into one that's
+          // actually on screen; if none qualify, leave the toggle in its
+          // default (always-visible) position rather than disappear.
+          if (resultsList) {
+            var countWrapperCandidates = resultsList.querySelectorAll('.products-count-wrapper');
+            var countWrapper = null;
+            for (var i = 0; i < countWrapperCandidates.length; i++) {
+              if (countWrapperCandidates[i].offsetParent !== null) {
+                countWrapper = countWrapperCandidates[i];
+                break;
+              }
+            }
+            if (countWrapper && countWrapper.parentNode) {
+              countWrapper.parentNode.insertBefore(root, countWrapper);
+              root.setAttribute('data-relocated', 'true');
+            }
+          }
+
+          function applyView(view) {
+            if (!resultsList) return;
+            resultsList.setAttribute('data-card-view', view);
+            root.querySelectorAll('[data-view]').forEach(function (btn) {
+              var active = btn.getAttribute('data-view') === view;
+              btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+          }
+
+          root.addEventListener('click', function (event) {
+            var btn = event.target.closest('[data-view]');
+            if (!btn) return;
+            var view = btn.getAttribute('data-view');
+            applyView(view);
+            try {
+              localStorage.setItem(storageKey, view);
+            } catch (e) {}
+          });
+
+          var saved = null;
+          try {
+            saved = localStorage.getItem(storageKey);
+          } catch (e) {}
+          applyView(saved === 'list' ? 'list' : 'grid');
+        })();
+      </script>
+
+      {% assign products_per_page = 24 %}
+
+      {% if section.settings.enable_infinite_scroll == false %}
+        {% assign products_per_page = section.settings.products_per_page %}
+      {% endif %}
+
+      {% paginate collection.products by products_per_page %}
+        {% capture children %}
+          {% for product in collection.products %}
+            <li
+              id="{{ section.id }}-{{ product.id }}"
+              class="product-grid__item product-grid__item--{{ forloop.index0 }}"
+              data-page="{{ paginate.current_page }}"
+              data-product-id="{{ product.id }}"
+              ref="cards[]"
+            >
+              {% render 'dalbe-product-card', product: product, context_id: section.id %}
+            </li>
+          {% endfor %}
+        {% endcapture %}
+
+        {% render 'product-grid',
+          section: section,
+          children: children,
+          products: collection.products,
+          paginate: paginate,
+          enable_infinite_scroll: section.settings.enable_infinite_scroll
+        %}
+      {% endpaginate %}
+    </div>
+  </results-list>
+</collection-component>
+
+{% stylesheet %}
+  /* dalbe: this section's own card styling now lives globally in
+     dalbe-theme-tokens.liquid (.dalbe-product-card), shared with every
+     other place a product card renders â€” see snippets/dalbe-product-card.
+     liquid. Only genuinely collection-page-specific layout rules (the
+     grid/list view toggle below) stay local to this file. */
+
+  /* Grid / list view toggle. Rendered in the markup as a plain sibling in
+     collection-wrapper (a native Horizon CSS grid), which pushed the whole
+     product grid down when left there via implicit grid auto-placement â€”
+     so by default it's taken out of flow with position: absolute instead,
+     anchored top-right of collection-wrapper (below). The section's own
+     script then tries to physically relocate it at runtime into Horizon's
+     native .facets-controls-wrapper, right before .products-count-wrapper
+     (the "915 items" text) â€” the exact row that already holds the item
+     count/sort dropdown, and where Horizon's own (disabled) grid-density
+     controls would normally sit. That relocation only targets a VISIBLE
+     .products-count-wrapper (Horizon renders a second, hidden, mobile-
+     drawer copy sharing the same class â€” grabbing that one by accident is
+     what silently "disappeared" the toggle in an earlier version of this).
+     [data-relocated="true"] below switches the toggle from the absolute
+     fallback to a normal inline flex child once relocation actually
+     succeeds; if it doesn't (or hasn't run yet), the absolute-positioned
+     default keeps it visible rather than failing invisibly. */
+  .collection-wrapper {
+    position: relative;
+  }
+
+  .dalbe-collection-view-toggle {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    gap: 6px;
+    z-index: 2;
+  }
+
+  @media screen and (min-width: 750px) {
+    .dalbe-collection-view-toggle {
+      display: flex;
+    }
+  }
+
+  .dalbe-collection-view-toggle[data-relocated="true"] {
+    position: static;
+    margin-inline-end: 12px;
+  }
+
+  .dalbe-collection-view-toggle__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #eef0f5;
+    border-radius: 8px;
+    background: #fff;
+    color: #9aa1b3;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .dalbe-collection-view-toggle__btn[aria-pressed="true"] {
+    color: var(--dalbe-navy);
+    border-color: var(--dalbe-navy);
+    background: #f4f5fb;
+  }
+
+  /* List view: force a single column and lay each card out horizontally */
+  results-list[data-card-view="list"] .product-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    padding: 12px;
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card::before {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: auto;
+    height: auto;
+    width: 4px;
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card:hover::before {
+    transform: scaleY(1);
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card__img-wrap {
+    flex: 0 0 96px;
+    width: 96px;
+    height: 96px;
+    margin: 0;
+    border-radius: 8px;
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card__link {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card__name {
+    min-height: 0;
+    margin: 0;
+    flex: 1 1 auto;
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card__price {
+    margin: 0;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card__bottom {
+    margin: 0;
+    flex: 0 0 auto;
+  }
+
+  results-list[data-card-view="list"] .dalbe-product-card .add-to-cart-button {
+    width: auto;
+    padding: 10px 20px !important;
+  }
+
+  @media screen and (max-width: 600px) {
+    results-list[data-card-view="list"] .dalbe-product-card__link {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.collection_container",
+  "enabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout_type",
+      "label": "t:settings.type",
+      "options": [
+        { "value": "grid", "label": "t:options.grid" },
+        { "value": "organic", "label": "t:options.editorial" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "select",
+      "id": "product_card_size",
+      "label": "t:settings.card_size",
+      "options": [
+        { "value": "small", "label": "t:options.small" },
+        { "value": "medium", "label": "t:options.medium" },
+        { "value": "large", "label": "t:options.large" },
+        { "value": "extra-large", "label": "t:options.extra_large" }
+      ],
+      "default": "medium",
+      "visible_if": "{{ section.settings.layout_type == 'grid' }}"
+    },
+    {
+      "type": "select",
+      "id": "mobile_product_card_size",
+      "label": "t:settings.mobile_card_size",
+      "options": [
+        { "value": "small", "label": "t:options.small" },
+        { "value": "large", "label": "t:options.large" }
+      ],
+      "default": "small"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_infinite_scroll",
+      "label": "t:settings.auto_load_products",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "t:settings.products_per_page",
+      "min": 8,
+      "max": 36,
+      "step": 4,
+      "default": 24,
+      "visible_if": "{{ section.settings.enable_infinite_scroll == false }}"
+    },
+    { "type": "header", "content": "t:content.layout" },
+    {
+      "type": "select",
+      "id": "product_grid_width",
+      "label": "t:settings.width",
+      "options": [
+        { "value": "centered", "label": "t:options.page" },
+        { "value": "full-width", "label": "t:options.full" }
+      ],
+      "default": "centered"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width_on_mobile",
+      "label": "t:settings.full_width_on_mobile",
+      "default": true,
+      "visible_if": "{{ section.settings.product_grid_width != 'full-width' }}"
+    },
+    {
+      "type": "range",
+      "id": "columns_gap_horizontal",
+      "label": "t:settings.horizontal_gap",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "columns_gap_vertical",
+      "label": "t:settings.vertical_gap",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    { "type": "header", "content": "t:content.section_layout" },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    }
+  ],
+  "presets": []
+}
+{% endschema %}

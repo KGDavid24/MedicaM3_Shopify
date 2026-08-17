@@ -1,0 +1,43 @@
+{%- doc -%}
+  PDP "brand eyebrow" -- shows the vendor name (small, uppercase, red,
+  matching the product page's other eyebrow-style labels) and, when a
+  matching brand_logo metaobject exists, a small real manufacturer logo
+  thumbnail alongside it. Falls back to name-only when no metaobject
+  matches. Same lookup pattern as the auto-mode Branduri directory
+  (sections/dalbe-brand-directory.liquid) -- both match against
+  product.vendor / the native vendor filter label, which are the same
+  underlying string.
+{%- enddoc -%}
+
+{% liquid
+  assign vendor_name = closest.product.vendor
+  assign matched_logo = null
+  if vendor_name != blank
+    for logo_entry in metaobjects.brand_logo.values
+      if logo_entry.name.value == vendor_name
+        assign matched_logo = logo_entry
+        break
+      endif
+    endfor
+  endif
+%}
+
+{% if vendor_name != blank %}
+  <div class="dalbe-product-brand">
+    <span class="dalbe-product-brand__label">Brand:</span>
+    {% if matched_logo and matched_logo.logo.value %}
+      <span class="dalbe-product-brand__logo">
+        {{ matched_logo.logo.value | image_url: width: 300 | image_tag: loading: 'lazy', alt: vendor_name, sizes: null, widths: null }}
+      </span>
+    {% endif %}
+    <span class="dalbe-product-brand__name">{{ vendor_name }}</span>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Brand produs (custom)",
+  "tag": null,
+  "settings": []
+}
+{% endschema %}

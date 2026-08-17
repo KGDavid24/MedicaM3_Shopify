@@ -1,0 +1,19 @@
+{%- doc -%}
+  Drop-in replacement for Horizon's native `_product-card` block type, used
+  wherever a parent section calls `content_for 'block', type: '_product-card',
+  closest.product: product` (product recommendations, search results,
+  cart/404 "you may also like"). Renders the shared dalbe-product-card
+  snippet instead of native markup, so every one of those spots matches the
+  same on-brand card design as the collection grid and homepage carousels —
+  no nested child blocks needed, this is fully self-contained.
+{%- enddoc -%}
+
+{% render 'dalbe-product-card', product: closest.product, context_id: section.id %}
+
+{% schema %}
+{
+  "name": "Card produs (custom)",
+  "tag": null,
+  "settings": []
+}
+{% endschema %}

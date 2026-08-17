@@ -40,78 +40,7 @@
 
       <div class="dalbe-product-carousel__track" data-carousel-track>
         {% for product in carousel_collection.products limit: section.settings.products_to_show %}
-          {% liquid
-            assign variant = product.selected_or_first_available_variant
-            assign on_sale = false
-            if variant.compare_at_price > variant.price
-              assign on_sale = true
-              assign discount_pct = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | round
-            endif
-            assign card_image = product.featured_image | default: product.images.first
-          %}
-          <div class="dalbe-product-carousel__card">
-            {% if on_sale %}
-              <span class="dalbe-product-carousel__badge">-{{ discount_pct }}%</span>
-            {% endif %}
-            <a href="{{ product.url }}" class="dalbe-product-carousel__card-link">
-              <div class="dalbe-product-carousel__card-img">
-                {% if card_image %}
-                  <img
-                    src="{{ card_image | image_url: width: 300 }}"
-                    alt="{{ card_image.alt | default: product.title | escape }}"
-                    loading="lazy"
-                    width="150"
-                    height="185"
-                  >
-                {% endif %}
-              </div>
-              <h3 class="dalbe-product-carousel__card-name">{{ product.title }}</h3>
-            </a>
-            <div class="dalbe-product-carousel__card-price">
-              {% if on_sale %}
-                <del aria-hidden="true">{{ variant.compare_at_price | money }}</del>
-                <span class="visually-hidden">{{ 'accessibility.was_price' | t | default: 'Prețul inițial a fost:' }} {{ variant.compare_at_price | money }}</span>
-                <ins aria-hidden="true">{{ variant.price | money }}</ins>
-                <span class="visually-hidden">{{ 'accessibility.now_price' | t | default: 'Prețul curent este:' }} {{ variant.price | money }}</span>
-              {% else %}
-                {{ variant.price | money }}
-              {% endif %}
-            </div>
-            <div class="dalbe-product-carousel__card-bottom">
-              {% liquid
-                assign cart_variant = product.selected_or_first_available_variant
-                assign needs_variant_choice = false
-                if product.has_only_default_variant == false and product.variants.size > 1
-                  assign needs_variant_choice = true
-                endif
-              %}
-              {% if needs_variant_choice %}
-                <a href="{{ product.url }}" class="add-to-cart-button dalbe-product-carousel__cta">
-                  <span class="svg-wrapper add-to-cart-icon">{{ 'icon-add-to-cart.svg' | inline_asset_content }}</span>
-                  Alege opțiunile
-                </a>
-              {% else %}
-                <product-form-component
-                  data-section-id="{{ section.id }}"
-                  data-product-id="{{ product.id }}"
-                  on:submit="/handleSubmit"
-                  class="dalbe-product-carousel__form"
-                >
-                  {% assign carousel_form_id = 'CarouselForm-' | append: product.id | append: '-' | append: section.id %}
-                  {%- form 'product', product, id: carousel_form_id, novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
-                    <input type="hidden" name="id" value="{{ cart_variant.id }}" {% unless cart_variant.available %}disabled{% endunless %}>
-                    <input type="hidden" name="quantity" value="1">
-                    {% render 'add-to-cart-button',
-                      add_to_cart_text: 'Adaugă în coș',
-                      class: 'dalbe-product-carousel__cta add-to-cart-button',
-                      can_add_to_cart: cart_variant.available,
-                      product: product
-                    %}
-                  {%- endform -%}
-                </product-form-component>
-              {% endif %}
-            </div>
-          </div>
+          {% render 'dalbe-product-card', product: product, context_id: section.id %}
         {% endfor %}
       </div>
 
@@ -144,7 +73,7 @@
         if (!trigger) return;
         event.preventDefault();
         var direction = trigger.hasAttribute('data-carousel-prev') ? -1 : 1;
-        var card = track.querySelector('.dalbe-product-carousel__card');
+        var card = track.querySelector('.dalbe-product-card');
         var cardWidth = card ? card.getBoundingClientRect().width + 20 : 300;
         var amount = direction * cardWidth * 2;
         if (track.scrollBy) {
@@ -274,116 +203,10 @@
     right: -17px;
   }
 
-  .dalbe-product-carousel__card {
-    position: relative;
+  .dalbe-product-carousel__track .dalbe-product-card {
     flex: 0 0 auto;
     width: 210px;
     scroll-snap-align: start;
-    background: #fff;
-    border: 1px solid #eef0f5;
-    border-radius: 12px;
-    padding: 15px 12px 12px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .dalbe-product-carousel__badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 2;
-    background: var(--dalbe-red);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 20px;
-  }
-
-  .dalbe-product-carousel__card-link {
-    text-decoration: none;
-    display: block;
-  }
-
-  .dalbe-product-carousel__card-img {
-    width: 100%;
-    height: 210px;
-    margin: 0 auto;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .dalbe-product-carousel__card-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  .dalbe-product-carousel__card-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: #2d3748;
-    line-height: 18.2px;
-    min-height: 36px;
-    margin: 8px 0 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .dalbe-product-carousel__card-price {
-    color: var(--dalbe-navy);
-    font-size: 18px;
-    font-weight: 800;
-    margin: 8px 0;
-  }
-
-  .dalbe-product-carousel__card-price del {
-    color: #9aa1b3;
-    font-size: 13px;
-    font-weight: 500;
-    text-decoration: line-through;
-    margin-inline-end: 4px;
-    display: inline-block;
-  }
-
-  .dalbe-product-carousel__card-price ins {
-    color: var(--dalbe-red);
-    text-decoration: none;
-  }
-
-  .dalbe-product-carousel__card-bottom {
-    margin-top: auto;
-  }
-
-  .dalbe-product-carousel__card-bottom .quick-add,
-  .dalbe-product-carousel__card-bottom quick-add-component,
-  .dalbe-product-carousel__card-bottom product-form-component {
-    display: block;
-    width: 100%;
-  }
-
-  .dalbe-product-carousel__card-bottom .add-to-cart-button {
-    width: 100%;
-    background: var(--dalbe-red) !important;
-    color: #fff !important;
-    border-radius: 8px !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    padding: 8px 10px !important;
-    border: 0 !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .dalbe-product-carousel__card-bottom .add-to-cart-icon svg {
-    width: 14px;
-    height: 14px;
   }
 {% endstylesheet %}
 

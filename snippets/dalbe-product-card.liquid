@@ -1,0 +1,86 @@
+{%- doc -%}
+  Single source of truth for the on-brand product card — badge, image,
+  clamped title, price, quick-add/choose button. Used everywhere a product
+  card renders: the collection grid (dalbe-collection.liquid), homepage
+  carousels (dalbe-product-carousel.liquid), and via the dalbe-product-card
+  block (blocks/dalbe-product-card.liquid) wherever native Horizon would
+  have used _product-card — product recommendations, cart/404 "you may
+  also like", and search results.
+
+  @param {object} product
+  @param {string} context_id - unique per rendering context (usually section.id), keeps quick-add form ids collision-free when the same product appears in more than one card on a page
+{%- enddoc -%}
+
+{% liquid
+  assign variant = product.selected_or_first_available_variant
+  assign on_sale = false
+  if variant.compare_at_price > variant.price
+    assign on_sale = true
+    assign discount_pct = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | round
+  endif
+  assign card_image = product.featured_image | default: product.images.first
+  assign needs_variant_choice = false
+  if product.has_only_default_variant == false and product.variants.size > 1
+    assign needs_variant_choice = true
+  endif
+%}
+
+<div class="dalbe-product-card">
+  {% if on_sale %}
+    <span class="dalbe-product-card__badge">-{{ discount_pct }}%</span>
+  {% elsif product.available == false %}
+    <span class="dalbe-product-card__badge dalbe-product-card__badge--sold-out">Stoc epuizat</span>
+  {% endif %}
+
+  <a href="{{ product.url }}" class="dalbe-product-card__link">
+    <div class="dalbe-product-card__img-wrap">
+      {% if card_image %}
+        <img
+          src="{{ card_image | image_url: width: 400 }}"
+          alt="{{ card_image.alt | default: product.title | escape }}"
+          loading="lazy"
+          width="200"
+          height="200"
+        >
+      {% endif %}
+    </div>
+    <h3 class="dalbe-product-card__name">{{ product.title }}</h3>
+  </a>
+
+  <div class="dalbe-product-card__price">
+    {% if on_sale %}
+      <del>{{ variant.compare_at_price | money }}</del>
+      <ins>{{ variant.price | money }}</ins>
+    {% else %}
+      {{ variant.price | money }}
+    {% endif %}
+  </div>
+
+  <div class="dalbe-product-card__bottom">
+    {% if needs_variant_choice %}
+      <a href="{{ product.url }}" class="add-to-cart-button dalbe-product-card__cta">
+        <span class="svg-wrapper add-to-cart-icon">{{ 'icon-add-to-cart.svg' | inline_asset_content }}</span>
+        Alege opțiunile
+      </a>
+    {% else %}
+      <product-form-component
+        data-section-id="{{ context_id }}"
+        data-product-id="{{ product.id }}"
+        on:submit="/handleSubmit"
+        class="dalbe-product-card__form"
+      >
+        {% assign card_form_id = 'ProductCardForm-' | append: product.id | append: '-' | append: context_id %}
+        {%- form 'product', product, id: card_form_id, novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
+          <input type="hidden" name="id" value="{{ variant.id }}" {% unless variant.available %}disabled{% endunless %}>
+          <input type="hidden" name="quantity" value="1">
+          {% render 'add-to-cart-button',
+            add_to_cart_text: 'Adaugă în coș',
+            class: 'dalbe-product-card__cta add-to-cart-button',
+            can_add_to_cart: variant.available,
+            product: product
+          %}
+        {%- endform -%}
+      </product-form-component>
+    {% endif %}
+  </div>
+</div>
