@@ -17,6 +17,9 @@ class DalbeCategoryNav extends HTMLElement {
   /** @type {ReturnType<typeof setTimeout> | undefined} */
   #closeTimer;
 
+  /** @type {number} */
+  #lockedScrollY = 0;
+
   connectedCallback() {
     this.trigger = this.querySelector('[data-trigger]');
     this.closeButton = this.querySelector('[data-close]');
@@ -62,12 +65,55 @@ class DalbeCategoryNav extends HTMLElement {
 
     this.setAttribute('data-open', '');
     this.trigger?.setAttribute('aria-expanded', 'true');
+    this.#lockBodyScroll();
   };
 
   #closeDrawer = () => {
     this.removeAttribute('data-open');
     this.trigger?.setAttribute('aria-expanded', 'false');
+    this.#unlockBodyScroll();
   };
+
+  /**
+   * dalbe: `overflow: hidden` on body/html blocks mouse-wheel scrolling
+   * but is well known to NOT reliably block touch-driven panning on real
+   * mobile browsers (iOS Safari in particular) -- a finger starting on
+   * the narrow visible backdrop strip still scrolled the page underneath
+   * despite that CSS being in place. Pinning body to position:fixed at
+   * its current scroll offset is the standard, actually-reliable fix:
+   * there's no scrollable box left for touch panning to act on. Desktop-
+   * gated because the panel there is a hover flyout, not a full-screen
+   * drawer -- locking scroll behind it would be unexpected.
+   */
+  #lockBodyScroll() {
+    if (window.matchMedia(DESKTOP_BREAKPOINT).matches) return;
+
+    this.#lockedScrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${this.#lockedScrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+  }
+
+  /** Safe to call even if never locked -- resetting already-empty inline styles is a no-op. */
+  #unlockBodyScroll() {
+    const wasLocked = document.body.style.position === 'fixed';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+
+    if (wasLocked) {
+      // dalbe: force a synchronous reflow before scrolling -- immediately
+      // after removing position:fixed, the layout engine hasn't
+      // necessarily recalculated the document's restored (in-flow)
+      // height yet, so scrollTo can silently clamp back to 0 as if the
+      // page were still only viewport-tall. Reading offsetHeight forces
+      // that recalculation to happen first.
+      void document.body.offsetHeight;
+      window.scrollTo(0, this.#lockedScrollY);
+    }
+  }
 
   #onKeydown = (/** @type {KeyboardEvent} */ event) => {
     if (event.key === 'Escape') this.#closeDrawer();

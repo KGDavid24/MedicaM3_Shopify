@@ -212,6 +212,18 @@
     .dalbe-page-sidebar__nav {
       flex: 1 1 auto;
       width: 100%;
+      /* dalbe: DOM order is nav-then-content (matches the desktop
+         side-by-side layout), so stacking them for mobile put the full
+         link list + contact card ahead of the actual page content --
+         visitors had to scroll past all of it first. Flex order swaps
+         which one renders first without touching source order, so
+         keyboard/reader nav still reaches the sidebar links in their
+         original place. */
+      order: 2;
+    }
+
+    .dalbe-page-sidebar__content {
+      order: 1;
     }
   }
 {% endstylesheet %}

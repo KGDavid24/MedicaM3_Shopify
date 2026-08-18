@@ -71,13 +71,29 @@
   .dalbe-nogag-promo__media {
     position: relative;
     min-height: 220px;
-    background: #0d1543;
+    /* dalbe: matches .dalbe-nogag-promo's own background exactly (was a
+       slightly different navy, #0d1543) so the padded frame below reads
+       as one continuous surface, not two adjacent-but-mismatched blues. */
+    background: var(--dalbe-navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
   }
 
+  /* dalbe: this is a product mockup photo with its own white studio
+     background baked into the file (not transparent) -- object-fit:cover
+     at zero padding filled the whole box edge-to-edge with that white,
+     landing as a flat, jarring cut straight into the navy content below
+     with no breathing room at all. Contain + padding + its own rounded
+     corners treats it as a product card sitting inside the navy frame
+     instead, which is what actually reads as "enveloped in the blue". */
   .dalbe-nogag-promo__img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    max-height: 260px;
+    object-fit: contain;
+    border-radius: 12px;
     display: block;
   }
 

@@ -107,8 +107,36 @@
   }
 
   @media screen and (max-width: 989px) {
+    /* dalbe: the 2-column grid squeezed each tile down to ~half the page
+       width while the title/teaser copy still needed the same number of
+       wrapped lines, so every card came out tall and narrow. A horizontal
+       carousel gives each card its own comfortable width instead (mirrors
+       the scroll-snap track pattern already used in
+       dalbe-product-carousel.liquid), which fixes the proportions and
+       matches how the compact mode already reads elsewhere: one row of
+       tiles, just swipeable instead of wrapped. */
     .dalbe-process-steps--compact .dalbe-process-steps__list {
-      grid-template-columns: repeat(2, 1fr);
+      display: flex;
+      align-items: stretch;
+      grid-template-columns: unset;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-block-end: 4px;
+    }
+
+    .dalbe-process-steps--compact .dalbe-process-steps__list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .dalbe-process-steps--compact .shopify-block {
+      flex: 0 0 240px;
+      scroll-snap-align: start;
+    }
+
+    .dalbe-process-steps--compact .dalbe-process-steps__item {
+      padding: 22px 20px;
     }
   }
 

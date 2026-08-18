@@ -270,6 +270,29 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
+
+    /* dalbe: the solid navy bar reads fine on desktop, where it's a single
+       wide row -- on mobile it wraps into several full rows of plain white
+       letters with no separation between them, so it reads as one flat
+       blue mass instead of a row of tappable buttons. Individual light
+       buttons on a white bar keep every letter visually distinct. */
+    .dalbe-brand-directory__jump {
+      background: var(--color-background);
+      border: 1px solid #e5e7eb;
+      gap: 6px;
+    }
+
+    .dalbe-brand-directory__jump-link {
+      border-radius: 6px;
+      background: #f3f4f6;
+      color: var(--dalbe-navy);
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .dalbe-brand-directory__jump-link:hover {
+      background: var(--dalbe-navy);
+      color: #fff;
+    }
   }
 {% endstylesheet %}
 

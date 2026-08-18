@@ -88,6 +88,7 @@
         </form>
       </predictive-search-component>
       <script src="{{ 'predictive-search.js' | asset_url }}" type="module" fetchpriority="low"></script>
+      <script src="{{ 'cart-icon.js' | asset_url }}" type="module" fetchpriority="low"></script>
 
       {% if section.settings.phone_number != blank %}
         <a href="tel:{{ phone_href }}" class="dalbe-header__phone">
@@ -126,14 +127,22 @@
         <span>Contul meu</span>
       </a>
 
-      <a href="{{ routes.cart_url }}" class="dalbe-header__action dalbe-header__action--cart">
-        <span class="svg-wrapper" aria-hidden="true">{{ 'icon-cart.svg' | inline_asset_content }}</span>
-        <span>Coș</span>
-        {% if cart.item_count > 0 %}
-          <span class="dalbe-header__cart-count">{{ cart.item_count }}</span>
-        {% else %}
-          <span class="dalbe-header__cart-count">0</span>
-        {% endif %}
+      <a
+        href="{{ routes.cart_url }}"
+        class="dalbe-header__action dalbe-header__action--cart"
+        aria-describedby="cart-bubble-text"
+      >
+        <cart-icon
+          class="dalbe-header__cart-icon"
+          data-testid="cart-icon"
+        >
+          <span
+            class="svg-wrapper"
+            aria-hidden="true"
+          >{{ 'icon-cart.svg' | inline_asset_content }}</span>
+          <span>Coș</span>
+          {% render 'cart-bubble', limit: 100 %}
+        </cart-icon>
       </a>
     </div>
     </div>
@@ -246,10 +255,34 @@
     width: 100%;
     min-width: 0;
     padding: 0.625rem 32px 0.625rem var(--padding-lg);
-    border: 1px solid var(--color-border);
+    /* dalbe: !important because this input also carries the generic
+       native .search-input class (see markup below), and
+       `input.search-input { border: 0px; background: transparent; }`
+       outranks a plain class selector on specificity -- without it the
+       input has no visible border at all and fades into the white page
+       background. Same root cause as the placeholder-color override
+       above. */
+    border: 1px solid var(--color-border) !important;
+    background: var(--color-background, #ffffff) !important;
     border-radius: 4px 0 0 4px;
-    font-size: 0.9375rem;
+    /* dalbe: bumped from 0.9375rem (15px) -- besides being genuinely
+       easier to read, 16px is the threshold that stops iOS Safari from
+       auto-zooming the whole page in when this input gets focus. */
+    font-size: 1rem;
     font-family: inherit;
+  }
+
+  /* dalbe: the theme's default placeholder color (navy at 60% opacity)
+     works out to ~4.3:1 contrast on white -- right at the edge of
+     readable on a desktop monitor, and noticeably harder to read on a
+     phone screen in real lighting. !important because this input also
+     carries the generic native .search-input class (see markup below),
+     and base.css's `input.search-input::placeholder` rule both outranks
+     a plain class selector on specificity AND loads after this
+     section's own stylesheet -- a plain override here can't win either
+     way without it. */
+  .dalbe-header__search-input::placeholder {
+    color: rgba(19, 31, 93, 0.85) !important;
   }
 
   /* dalbe: the browser's own native search-clear "X" (rendered inside the
@@ -491,21 +524,35 @@
     height: var(--icon-size-md, 24px);
   }
 
-  .dalbe-header__cart-count {
+  /* dalbe: was a plain server-rendered {{ cart.item_count }} span -- never
+     updated after an AJAX add-to-cart, only on the next full page load
+     (e.g. actually opening /cart). Swapped the markup above for Horizon's
+     native <cart-icon>/cart-bubble pair (assets/cart-icon.js +
+     snippets/cart-bubble.liquid), which listens for the theme's own
+     cart-lines-update event and re-renders the count live, with the
+     built-in pop animation. These rules just restyle its native
+     --cart-bubble-* custom properties and position it to match where the
+     old static badge sat, rather than reimplementing the bubble itself. */
+  .dalbe-header__cart-icon {
+    --cart-bubble-background: var(--dalbe-navy);
+    --cart-bubble-text: #ffffff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .dalbe-header__cart-icon .cart-bubble {
     position: absolute;
     top: -4px;
     right: -10px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    border-radius: 999px;
-    background: var(--dalbe-navy);
-    color: #ffffff;
+    width: 16px;
+  }
+
+  .dalbe-header__cart-icon .cart-bubble__text {
     font-size: 0.625rem;
     font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   @media screen and (max-width: 989px) {
@@ -553,8 +600,15 @@
     /* dalbe: three labeled icons (Wishlist/Contul meu/Coș) plus the logo
        and a flexible search bar don't fit one mobile row — the text
        labels were overflowing past the viewport edge. Icon + cart-count
-       badge stay, the text labels collapse to icon-only on mobile. */
-    .dalbe-header__action > span:not(.svg-wrapper):not(.dalbe-header__cart-count) {
+       badge stay, the text labels collapse to icon-only on mobile.
+       Two selectors because "Coș" no longer sits directly inside
+       .dalbe-header__action -- it's nested one level deeper inside
+       <cart-icon> now (see the native cart-bubble rewrite above), so a
+       single `> span` selector stopped reaching it. The native cart-bubble
+       itself is a <div>, not a <span>, so it was never going to match
+       either selector and needs no exception. */
+    .dalbe-header__action > span:not(.svg-wrapper),
+    .dalbe-header__cart-icon > span:not(.svg-wrapper) {
       display: none;
     }
   }

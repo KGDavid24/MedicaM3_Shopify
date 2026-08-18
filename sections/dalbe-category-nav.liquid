@@ -126,6 +126,31 @@
           </li>
         {% endfor %}
       </ul>
+
+      {% if section.blocks.size > 0 %}
+        {% comment %}
+          dalbe: mobile-only duplicate of the trigger-bar's secondary links
+          (.dalbe-category-nav__trigger-links, above) -- that nav is
+          display:none below 990px with no mobile equivalent, so on phones
+          there was previously no way to reach Branduri/Contact/Articole/etc.
+          at all. Rendered as plain links here (no dropdown flyout) since a
+          tap-through list is all mobile needs.
+        {% endcomment %}
+        <nav
+          class="dalbe-category-nav__sidebar-links"
+          aria-label="{{ 'accessibility.secondary_navigation' | t | default: 'Secondary' }}"
+        >
+          {% for block in section.blocks %}
+            <a
+              href="{{ block.settings.link | default: '/pages/404-placeholder' }}"
+              class="dalbe-category-nav__sidebar-link"
+              {{ block.shopify_attributes }}
+            >
+              {{ block.settings.label }}
+            </a>
+          {% endfor %}
+        </nav>
+      {% endif %}
     </div>
 
     <div
@@ -408,6 +433,14 @@
   }
 
   .dalbe-category-nav__panel {
+    display: none;
+  }
+
+  /* dalbe: mobile-only (see the max-width:989px override below) -- on
+     desktop these same links already show permanently in the trigger-bar,
+     so showing them again in the sidebar (also used for the homepage's
+     desktop locked-open panel) would just duplicate them. */
+  .dalbe-category-nav__sidebar-links {
     display: none;
   }
 
@@ -796,6 +829,14 @@
       z-index: 201;
     }
 
+    /* dalbe: nothing previously stopped the page behind the drawer from
+       scrolling while it's open -- the drawer itself scrolls its own
+       content fine, but a touch starting outside the sidebar (on the
+       narrow visible strip of backdrop) scrolled the underlying page. */
+    body:has(.dalbe-category-nav[data-open]) {
+      overflow: hidden;
+    }
+
     .dalbe-category-nav__panel {
       position: fixed;
       inset: 0;
@@ -834,8 +875,24 @@
       font-weight: 700;
     }
 
+    /* dalbe: the base (desktop) rule sets this to display:none -- the
+       sidebar-header rule above restores the bar itself and the title,
+       but never restored the close button's own display, so it stayed
+       invisible on mobile even though the markup and click handler were
+       always there. */
+    .dalbe-category-nav__close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+    }
+
     .dalbe-category-nav__close .svg-wrapper {
       color: #ffffff;
+      width: 20px;
+      height: 20px;
     }
 
     .dalbe-category-nav__flyout {
@@ -887,6 +944,29 @@
     .dalbe-category-nav__accordion .dalbe-category-nav__node-list .dalbe-category-nav__node-list {
       border-inline-start-color: transparent;
       padding-inline-start: 14px;
+    }
+
+    .dalbe-category-nav__sidebar-links {
+      display: flex;
+      flex-direction: column;
+      /* dalbe: separates this utility-link group from the category list
+         above it without another full-width divider bar. */
+      margin-block-start: auto;
+      border-block-start: 1px solid #ebebeb;
+      padding-block: var(--padding-xs);
+      background: #f8f9fc;
+    }
+
+    .dalbe-category-nav__sidebar-link {
+      padding: 10px 24px;
+      text-decoration: none;
+      color: var(--dalbe-text);
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    .dalbe-category-nav__sidebar-link:hover {
+      color: var(--dalbe-navy);
     }
   }
 {% endstylesheet %}

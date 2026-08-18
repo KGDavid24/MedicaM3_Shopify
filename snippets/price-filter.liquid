@@ -84,6 +84,74 @@
         data-currency="{{ localization.country.currency.iso_code }}"
         on:change="/updatePriceFilterAndResults"
       >
+        <script src="{{ 'dalbe-price-slider.js' | asset_url }}" type="module" fetchpriority="low"></script>
+
+        {%- comment -%}
+          dalbe: these are raw MINOR UNITS (bani/cents), NOT display values --
+          filter.range_max / min_value.value / max_value.value are already in
+          minor units, and they're passed through untouched so the slider's
+          own arithmetic matches how the native price-facet-component
+          represents money internally (see assets/dalbe-price-slider.js,
+          which converts to/from display text via the theme's own
+          money-formatting helpers).
+
+          Deliberately NOT money_without_currency here: that applies locale
+          thousands/decimal separators (e.g. "17.200,00" for this shop's RO
+          locale), which HTML treats as an invalid min/max/value on a range
+          input and silently falls back to its own default 0-100 range.
+
+          Nil-checked rather than using `| default:` -- Liquid's `default`
+          only substitutes for nil/false/empty, never for 0, and a filter
+          legitimately set to 0 must stay distinguishable from "no filter".
+        {%- endcomment -%}
+        {%- assign slider_max = filter.range_max -%}
+        {%- assign slider_min_value = 0 -%}
+        {%- if filter.min_value.value -%}
+          {%- assign slider_min_value = filter.min_value.value -%}
+        {%- endif -%}
+        {%- assign slider_max_value = slider_max -%}
+        {%- if filter.max_value.value -%}
+          {%- assign slider_max_value = filter.max_value.value -%}
+        {%- endif -%}
+        <dalbe-price-slider class="dalbe-price-slider">
+          <div class="dalbe-price-slider__track">
+            <div
+              class="dalbe-price-slider__fill"
+              data-slider-fill
+            ></div>
+          </div>
+          <div
+            class="dalbe-price-slider__handle"
+            data-slider-handle-min
+            aria-hidden="true"
+          ></div>
+          <div
+            class="dalbe-price-slider__handle"
+            data-slider-handle-max
+            aria-hidden="true"
+          ></div>
+          <input
+            type="range"
+            class="dalbe-price-slider__input dalbe-price-slider__input--min"
+            min="0"
+            max="{{ slider_max }}"
+            step="100"
+            value="{{ slider_min_value }}"
+            data-slider-min
+            aria-label="{{ 'accessibility.price_filter_low' | t }}"
+          >
+          <input
+            type="range"
+            class="dalbe-price-slider__input dalbe-price-slider__input--max"
+            min="0"
+            max="{{ slider_max }}"
+            step="100"
+            value="{{ slider_max_value }}"
+            data-slider-max
+            aria-label="{{ 'accessibility.price_filter_high' | t }}"
+          >
+        </dalbe-price-slider>
+
         <div class="facets__inputs-wrapper facets__inputs-wrapper--row">
           <div
             class="price-facet__inputs-wrapper"
@@ -189,6 +257,118 @@
 %}
 
 {% stylesheet %}
+  /* dalbe: two-handle drag slider, kept in sync with the native min/max
+     text inputs below it rather than replacing their filtering logic --
+     see assets/dalbe-price-slider.js.
+
+     The track and the two round handles you actually SEE are plain
+     positioned <div>s (.dalbe-price-slider__track/__fill/__handle),
+     positioned by JS as percentages -- not native ::-webkit-slider-thumb
+     pseudo-elements. Two real <input type="range"> still exist and still
+     drive dragging/keyboard/accessibility, but are fully invisible
+     (opacity: 0) with their own native thumb hit-area left exactly where
+     it always was, just painting nothing.
+
+     This replaced an earlier version that styled the native thumbs
+     directly (background/border on ::-webkit-slider-thumb). That's a much
+     more common technique, but proved unreliable to even VERIFY here --
+     both of this theme's two filter surfaces (the mobile full-screen
+     dialog and the desktop floating-panel dropdown) open via a CSS
+     opacity/transform transition, and repeatedly inspecting them
+     mid-transition produced misleading results. Rather than keep
+     debugging a component whose actual rendered state was hard to pin
+     down, moving the VISIBLE part to plain divs I fully control removes
+     the dependency on native thumb rendering/appearance-reset behavior
+     entirely -- the same category of thing that was making this hard to
+     verify in the first place. */
+  .dalbe-price-slider {
+    position: relative;
+    height: 32px;
+    /* dalbe: reserves room for half the handle's own diameter (20px) on
+       each side, so a handle at the very min/max of the range doesn't
+       have its edge flush against (or clipped by) the container edge. */
+    margin-inline: 10px;
+    margin-block: 4px 12px;
+  }
+
+  .dalbe-price-slider__track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    transform: translateY(-50%);
+    background: #e5e7eb;
+    border-radius: 999px;
+  }
+
+  .dalbe-price-slider__fill {
+    position: absolute;
+    top: 50%;
+    height: 4px;
+    transform: translateY(-50%);
+    background: var(--dalbe-navy, #131f5d);
+    border-radius: 999px;
+  }
+
+  .dalbe-price-slider__handle {
+    position: absolute;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--dalbe-navy, #131f5d);
+    border: 3px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(19, 31, 93, 0.45);
+    pointer-events: none;
+  }
+
+  .dalbe-price-slider__input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 32px;
+    margin: 0;
+    background: transparent;
+    opacity: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: none;
+  }
+
+  .dalbe-price-slider__input::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    background: transparent;
+    height: 32px;
+  }
+
+  .dalbe-price-slider__input::-moz-range-track {
+    background: transparent;
+    height: 32px;
+    border: none;
+  }
+
+  .dalbe-price-slider__input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    pointer-events: auto;
+    width: 20px;
+    height: 20px;
+    margin-top: 6px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .dalbe-price-slider__input::-moz-range-thumb {
+    pointer-events: auto;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+  }
+
   /* Price filter */
   .price-facet {
     container-type: inline-size;
