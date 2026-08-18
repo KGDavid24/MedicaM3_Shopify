@@ -1,0 +1,271 @@
+{%- doc -%}
+  Cart-page "S-ar putea să-ți placă și" recommendations. Replaces what used
+  to be here (a generic dalbe-product-list pulling unfiltered from the
+  "All" collection, in templates/cart.json's product_list_NNFgcy section --
+  not actually related to what's in the cart at all).
+
+  Reuses Horizon's native <product-recommendations> web component and
+  assets/product-recommendations.js completely untouched (same lazy-load-
+  on-scroll-into-view fetch, same section-morph hydration) -- only the
+  Liquid rendering logic here differs from sections/dalbe-product-recommendations.liquid:
+
+  - Seed product for the native complementary-recommendations API is
+    computed from the cart itself (the highest-value line item) rather
+    than a single fixed product, since there's no closest.product on the
+    cart page and a cart can hold several different products. This also
+    naturally covers the client's "matches/complements cart items" and
+    "frequently bought together" asks in one native call -- Shopify's own
+    'complementary' intent already is a frequently-bought-together signal,
+    not two things to build separately.
+  - Products already in the cart are skipped when rendering results (no
+    point recommending something already added).
+  - If native complementary recommendations come back empty (can happen
+    for niche/low-data products), falls back to the "Promoțiile
+    săptămânii" collection (an automatic collection ruled on
+    IS_PRICE_REDUCED, i.e. genuinely on-sale products) -- covers the
+    client's "products on sale/promo" ask as a fallback source rather than
+    a mandatory separate carousel.
+
+  This section re-renders automatically on every cart mutation as part of
+  main-cart.liquid's normal Section Rendering morph (it's inside
+  cart-items-component's children), which recomputes the seed product from
+  the now-current cart -- and separately, product-recommendations.js's own
+  MutationObserver notices the resulting data-product-id attribute change
+  and re-fetches fresh recommendations for it. No recommendations-specific
+  JS needed here.
+{%- enddoc -%}
+
+<script
+  src="{{ 'product-recommendations.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+{% liquid
+  assign seed_item = null
+  assign seed_line_price = -1
+  for item in cart.items
+    if item.line_price > seed_line_price
+      assign seed_line_price = item.line_price
+      assign seed_item = item
+    endif
+  endfor
+
+  assign cart_product_ids = cart.items | map: 'product_id'
+  assign max_products = section.settings.max_products
+%}
+
+{% render 'quick-add-styles' %}
+{% render 'quick-add-modal-styles' %}
+{% render 'swatch-styles' %}
+{% render 'quantity-selector-styles' %}
+{% render 'variant-picker-styles' %}
+{% render 'product-badges-styles' %}
+{% render 'resource-list-styles' %}
+{% render 'product-recommendations-styles' %}
+
+{% unless cart.empty? %}
+  <product-recommendations
+    id="product-recommendations-{{ section.id }}"
+    class="product-recommendations"
+    data-url="{{ routes.product_recommendations_url }}?limit={{ max_products | plus: cart.item_count }}"
+    data-section-id="{{ section.id }}"
+    data-product-id="{{ seed_item.product_id }}"
+    data-intent="complementary"
+    data-testid="cart-recommendations-section"
+    data-recommendations-performed="{{ recommendations.performed }}"
+    data-hydration-key="product-recommendations-{{ section.id }}"
+    {{ section.shopify_attributes }}
+  >
+    <div class="section-background"></div>
+    <div
+      class="section section--{{ section.settings.section_width }} section-resource-list dalbe-cart-recommendations spacing-style gap-style"
+      style="
+        {% render 'spacing-style', settings: section.settings %}
+        {% render 'gap-style', value: section.settings.gap %}
+        --resource-list-columns: repeat({{ section.settings.columns }}, 1fr);
+        --resource-list-columns-mobile: repeat({{ section.settings.mobile_columns }}, 1fr);
+        --resource-list-column-gap-desktop: {{ section.settings.columns_gap }}px;
+        --resource-list-row-gap-desktop: {{ section.settings.rows_gap }}px;
+        --column-count: {{ section.settings.columns }};
+        --column-count-mobile: {{ section.settings.mobile_columns }};
+      "
+    >
+      <div class="section-resource-list__content">
+        <h3>{{ section.settings.heading }}</h3>
+      </div>
+
+      {%- if recommendations.performed -%}
+        {% liquid
+          assign products = recommendations.products
+          if products.size == 0
+            assign products = collections['promoțiile-saptamanii'].products
+          endif
+        %}
+        {% capture list_items %}
+          {% assign shown_count = 0 %}
+          {% for product in products %}
+            {% unless cart_product_ids contains product.id or shown_count >= max_products %}
+              <div class="resource-list__item">
+                {% render 'dalbe-product-card', product: product, context_id: section.id %}
+              </div>
+              {% assign shown_count = shown_count | plus: 1 %}
+              {% unless shown_count == max_products %}
+                <!--@list/split-->
+              {% endunless %}
+            {% endunless %}
+          {% endfor %}
+        {% endcapture %}
+
+        {% if shown_count > 0 %}
+          <div
+            class="resource-list resource-list--grid"
+            data-testid="resource-list-grid"
+            data-has-recommendations="true"
+          >
+            {{ list_items }}
+          </div>
+        {% endif %}
+      {%- else -%}
+        <div class="resource-list resource-list--grid">
+          {% for i in (1..section.settings.columns) %}
+            <div
+              class="product-recommendations__skeleton-item"
+              aria-label="{{ 'accessibility.loading_product_recommendations' | t }}"
+            ></div>
+          {% endfor %}
+        </div>
+      {%- endif -%}
+    </div>
+  </product-recommendations>
+{% endunless %}
+
+{% schema %}
+{
+  "name": "Recomandări coș (custom)",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "S-ar putea să-ți placă și"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "t:settings.product_count",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "t:settings.columns",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "mobile_columns",
+      "label": "t:settings.mobile_columns",
+      "options": [
+        {
+          "value": "1",
+          "label": "t:options.one_number"
+        },
+        {
+          "value": "2",
+          "label": "t:options.two_number"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "columns_gap",
+      "label": "t:settings.horizontal_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "rows_gap",
+      "label": "t:settings.vertical_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:settings.gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "Recomandări coș (custom)"
+    }
+  ]
+}
+{% endschema %}

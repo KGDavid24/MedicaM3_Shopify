@@ -1,9 +1,10 @@
 {%- doc -%}
-  PDP "brand eyebrow" -- shows the vendor name (small, uppercase, red,
-  matching the product page's other eyebrow-style labels) and, when a
-  matching brand_logo metaobject exists, a small real manufacturer logo
-  thumbnail alongside it. Falls back to name-only when no metaobject
-  matches. Same lookup pattern as the auto-mode Branduri directory
+  PDP "brand" block -- links to that brand's filtered product list. Shows
+  the real manufacturer logo when a matching brand_logo metaobject has
+  one; the logo's own wordmark already spells out the brand name, so the
+  plain-text name is only shown as a fallback when no logo exists
+  (otherwise the name would visibly repeat right next to its own logo).
+  Same lookup pattern as the auto-mode Branduri directory
   (sections/dalbe-brand-directory.liquid) -- both match against
   product.vendor / the native vendor filter label, which are the same
   underlying string.
@@ -20,18 +21,25 @@
       endif
     endfor
   endif
+  assign has_logo = false
+  if matched_logo and matched_logo.logo.value
+    assign has_logo = true
+  endif
+  assign encoded_vendor = vendor_name | url_encode
+  assign brand_href = routes.all_products_collection_url | append: '?filter.p.vendor=' | append: encoded_vendor
 %}
 
 {% if vendor_name != blank %}
-  <div class="dalbe-product-brand">
+  <a href="{{ brand_href }}" class="dalbe-product-brand">
     <span class="dalbe-product-brand__label">Brand:</span>
-    {% if matched_logo and matched_logo.logo.value %}
+    {% if has_logo %}
       <span class="dalbe-product-brand__logo">
         {{ matched_logo.logo.value | image_url: width: 300 | image_tag: loading: 'lazy', alt: vendor_name, sizes: null, widths: null }}
       </span>
+    {% else %}
+      <span class="dalbe-product-brand__name">{{ vendor_name }}</span>
     {% endif %}
-    <span class="dalbe-product-brand__name">{{ vendor_name }}</span>
-  </div>
+  </a>
 {% endif %}
 
 {% schema %}

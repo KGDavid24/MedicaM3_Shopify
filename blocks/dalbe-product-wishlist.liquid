@@ -1,0 +1,24 @@
+{%- doc -%}
+  PDP "add to favorites" placeholder -- matches the header's existing
+  wishlist icon (sections/dalbe-header.liquid), which has no real
+  functionality behind it (no wishlist app installed) and links to
+  /pages/404-placeholder per this project's standing convention for "not
+  a real destination yet".
+{%- enddoc -%}
+
+<a href="/pages/404-placeholder" class="dalbe-product-wishlist" aria-label="Adaugă la favorite">
+  <span class="svg-wrapper" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 20.5s-7.5-4.6-10-9.3C.6 8 1.8 4.5 5 3.4c2.2-.8 4.5 0 6 2 1.5-2 3.8-2.8 6-2 3.2 1.1 4.4 4.6 3 7.8-2.5 4.7-10 9.3-10 9.3Z"/>
+    </svg>
+  </span>
+  <span>Adaugă la favorite</span>
+</a>
+
+{% schema %}
+{
+  "name": "Wishlist produs (custom)",
+  "tag": null,
+  "settings": []
+}
+{% endschema %}

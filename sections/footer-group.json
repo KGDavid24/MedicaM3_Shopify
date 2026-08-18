@@ -100,11 +100,22 @@
                 "padding-inline-end": 0
               },
               "blocks": {}
+            },
+            "social_links_dalbe": {
+              "type": "social-links",
+              "settings": {
+                "icon_color": "#ffffff",
+                "facebook_url": "https://www.facebook.com/share/1GMdfLnbW6/",
+                "instagram_url": "https://www.instagram.com/medicam3",
+                "linkedin_url": "https://www.linkedin.com/company/medicam3"
+              },
+              "blocks": {}
             }
           },
           "block_order": [
             "logo",
-            "address"
+            "address",
+            "social_links_dalbe"
           ]
         },
         "col_contact": {

@@ -69,9 +69,16 @@
         on:submit="/handleSubmit"
         class="dalbe-product-card__form"
       >
+        <div
+          class="visually-hidden"
+          aria-live="assertive"
+          role="status"
+          aria-atomic="true"
+          ref="liveRegion"
+        ></div>
         {% assign card_form_id = 'ProductCardForm-' | append: product.id | append: '-' | append: context_id %}
         {%- form 'product', product, id: card_form_id, novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
-          <input type="hidden" name="id" value="{{ variant.id }}" {% unless variant.available %}disabled{% endunless %}>
+          <input type="hidden" name="id" ref="variantId" value="{{ variant.id }}" {% unless variant.available %}disabled{% endunless %}>
           <input type="hidden" name="quantity" value="1">
           {% render 'add-to-cart-button',
             add_to_cart_text: 'Adaugă în coș',

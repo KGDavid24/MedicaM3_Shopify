@@ -53,14 +53,7 @@
               class="predictive-search-results__card predictive-search-results__card--product"
               ref="recentlyViewedItems[]"
             >
-              {% render 'resource-card',
-                resource_type: 'product',
-                resource: product,
-                image_width: 500,
-                image_hover: true,
-                image_aspect_ratio: '4 / 5',
-                product_view_context: 'search'
-              %}
+              {% render 'dalbe-product-card', product: product, context_id: 'predictive-search' %}
             </li>
           {% endfor %}
         {% else %}
@@ -69,14 +62,7 @@
               class="predictive-search-results__card predictive-search-results__card--product"
               ref="recentlyViewedItems[]"
             >
-              {% render 'resource-card',
-                resource_type: 'product',
-                resource: product,
-                image_width: 500,
-                image_hover: true,
-                image_aspect_ratio: '4 / 5',
-                product_view_context: 'search'
-              %}
+              {% render 'dalbe-product-card', product: product, context_id: 'predictive-search' %}
             </li>
           {% endfor %}
         {% endif %}
@@ -97,14 +83,7 @@
           class="predictive-search-results__card predictive-search-results__card--product"
           ref="resultsItems[]"
         >
-          {% render 'resource-card',
-            resource_type: 'product',
-            resource: product,
-            image_width: 500,
-            image_hover: true,
-            image_aspect_ratio: '4 / 5',
-            product_view_context: 'search'
-          %}
+          {% render 'dalbe-product-card', product: product, context_id: 'predictive-search' %}
         </li>
       {% endfor %}
     </ul>

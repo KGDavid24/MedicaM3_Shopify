@@ -1,0 +1,126 @@
+{%- doc -%}
+  Product-page breadcrumb trail (Acasă > Categorie > Subcategorie >
+  Produs). There's no direct product -> mega-menu-node reference stored
+  anywhere, so this reverse-matches the product's tagged collections
+  (product.collections -- products are tagged with both their specific
+  category and every ancestor category, see the vendor/category tagging
+  work referenced in HANDOFF.md) against the mega-menu tree
+  (metaobjects.menu_group/menu_node) at render time, picking the deepest
+  matching category/subcategory pair. Products with no tag/collection
+  match (a minority -- see HANDOFF.md's untagged-product notes) fall back
+  to just Acasă > Product title, no category crumbs.
+{%- enddoc -%}
+
+{% liquid
+  assign product_collection_handles = product.collections | map: 'handle'
+  assign crumb_category = null
+  assign crumb_subcategory = null
+
+  for group in metaobjects.menu_group.values
+    unless crumb_subcategory
+      for depth1 in group.children.value
+        unless crumb_subcategory
+          assign depth1_handle = depth1.url.value.url | split: '/collections/' | last
+          if product_collection_handles contains depth1_handle and crumb_category == null
+            assign crumb_category = depth1
+          endif
+
+          for depth2 in depth1.children.value
+            unless crumb_subcategory
+              assign depth2_handle = depth2.url.value.url | split: '/collections/' | last
+              if product_collection_handles contains depth2_handle
+                assign crumb_category = depth1
+                assign crumb_subcategory = depth2
+              endif
+            endunless
+          endfor
+        endunless
+      endfor
+    endunless
+  endfor
+%}
+
+<div class="section section--page-width dalbe-breadcrumbs-section">
+  <nav class="dalbe-breadcrumbs" aria-label="{{ 'accessibility.breadcrumbs' | t | default: 'Breadcrumb' }}">
+    <ol class="dalbe-breadcrumbs__list list-unstyled">
+      <li class="dalbe-breadcrumbs__item">
+        <a href="{{ routes.root_url }}">Acasă</a>
+      </li>
+      {% if crumb_category %}
+        <li class="dalbe-breadcrumbs__item">
+          <a href="{{ crumb_category.url.value.url }}">{{ crumb_category.title.value }}</a>
+        </li>
+      {% endif %}
+      {% if crumb_subcategory %}
+        <li class="dalbe-breadcrumbs__item">
+          <a href="{{ crumb_subcategory.url.value.url }}">{{ crumb_subcategory.title.value }}</a>
+        </li>
+      {% endif %}
+      <li class="dalbe-breadcrumbs__item dalbe-breadcrumbs__item--current" aria-current="page">
+        {{ product.title }}
+      </li>
+    </ol>
+  </nav>
+</div>
+
+{% stylesheet %}
+  .dalbe-breadcrumbs-section {
+    padding-block: 16px 0;
+  }
+
+  .dalbe-breadcrumbs__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8125rem;
+  }
+
+  .dalbe-breadcrumbs__item {
+    display: flex;
+    align-items: center;
+    color: #6b7280;
+  }
+
+  .dalbe-breadcrumbs__item a {
+    color: #6b7280;
+    text-decoration: none;
+  }
+
+  .dalbe-breadcrumbs__item a:hover {
+    color: var(--dalbe-navy);
+    text-decoration: underline;
+  }
+
+  .dalbe-breadcrumbs__item:not(:last-child)::after {
+    content: '/';
+    margin-inline: 8px;
+    color: #d1d5db;
+  }
+
+  .dalbe-breadcrumbs__item--current {
+    color: #1f2937;
+    font-weight: 600;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Breadcrumbs (custom)",
+  "tag": "div",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [],
+  "presets": [
+    {
+      "name": "Breadcrumbs (custom)"
+    }
+  ]
+}
+{% endschema %}

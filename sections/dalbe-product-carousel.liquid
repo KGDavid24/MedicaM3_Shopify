@@ -95,6 +95,16 @@
     max-width: 1200px;
     margin: 40px auto 50px;
     padding: 0 20px;
+    /* dalbe: the theme's default heading font (Inter) appears to be
+       missing the Romanian comma-below ț glyph in whatever subset
+       Shopify is serving (likely tied to the shop's primary locale being
+       "en", not "ro" -- see the locale notes elsewhere in this project),
+       causing the browser to silently swap in a fallback font for just
+       that character mid-word. Open Sans (used elsewhere in this
+       project's own custom sections, e.g. dalbe-header.liquid,
+       dalbe-category-nav.liquid) has full glyph coverage and doesn't
+       show the same bug. */
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
   }
 
   .dalbe-product-carousel--empty {
@@ -107,6 +117,7 @@
 
   .dalbe-product-carousel__header {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;

@@ -34,19 +34,60 @@
     </div>
 
     <div class="dalbe-header__middle">
-      <form action="{{ routes.search_url }}" method="get" role="search" class="dalbe-header__search">
-        <input
-          type="search"
-          name="q"
-          class="dalbe-header__search-input"
-          placeholder="{{ section.settings.search_placeholder }}"
-          value="{{ search.terms | escape }}"
-          autocomplete="off"
+      {% render 'pills-styles' %}
+      {% render 'predictive-search-styles' %}
+      <predictive-search-component
+        class="dalbe-header__search predictive-search"
+        data-section-id="predictive-search"
+        style="--product-corner-radius: 8px; --card-corner-radius: 8px;"
+        role="search"
+        aria-label="{{ 'content.search_input_label' | t }}"
+      >
+        <form
+          action="{{ routes.search_url }}"
+          method="get"
+          role="search"
+          class="dalbe-header__search-form predictive-search-form"
+          ref="form"
+          on:keydown="/onSearchKeyDown"
         >
-        <button type="submit" class="dalbe-header__search-submit" aria-label="{{ 'general.search.submit' | t | default: 'Search' }}">
-          {{ 'icon-search.svg' | inline_asset_content }}
-        </button>
-      </form>
+          <input
+            type="search"
+            name="q"
+            class="dalbe-header__search-input search-input"
+            placeholder="{{ section.settings.search_placeholder }}"
+            value="{{ search.terms | escape }}"
+            autocomplete="off"
+            role="combobox"
+            aria-expanded="false"
+            aria-owns="predictive-search-results"
+            aria-controls="predictive-search-results"
+            aria-haspopup="listbox"
+            aria-autocomplete="list"
+            ref="searchInput"
+            on:input="/search"
+            on:keydown="/onSearchKeyDown"
+          >
+          <button
+            type="button"
+            class="dalbe-header__search-reset"
+            ref="resetButton"
+            hidden
+            on:click="/resetSearch"
+            aria-label="{{ 'actions.clear' | t }}"
+          >
+            <span class="svg-wrapper">{{ 'icon-close.svg' | inline_asset_content }}</span>
+          </button>
+          <button type="submit" class="dalbe-header__search-submit" aria-label="{{ 'general.search.submit' | t | default: 'Search' }}">
+            {{ 'icon-search.svg' | inline_asset_content }}
+          </button>
+
+          <div class="dalbe-header__search-results-wrapper">
+            <div class="dalbe-header__search-results predictive-search-form__content" ref="predictiveSearchResults"></div>
+          </div>
+        </form>
+      </predictive-search-component>
+      <script src="{{ 'predictive-search.js' | asset_url }}" type="module" fetchpriority="low"></script>
 
       {% if section.settings.phone_number != blank %}
         <a href="tel:{{ phone_href }}" class="dalbe-header__phone">
@@ -101,6 +142,8 @@
 
 {% stylesheet %}
   .dalbe-header {
+    position: relative;
+    z-index: 200;
     background: var(--color-background);
     font-family: 'Open Sans', Helvetica, Arial, sans-serif;
   }
@@ -188,15 +231,34 @@
     width: 320px;
     display: flex;
     position: relative;
+    /* dalbe: <predictive-search-component> gets a global native rule
+       (position:relative; z-index: var(--layer-heightened), i.e. 4) that
+       traps our results dropdown's own z-index inside a stacking context
+       capped at 4 -- losing to the category-nav trigger bar's z-index:18
+       (var(--layer-menu-drawer)) and anything after it, regardless of the
+       dropdown's own z-index value. Overriding it here with a more
+       specific selector so the whole search component -- dropdown
+       included -- sits above the rest of the page. */
+    z-index: var(--layer-temporary, 20);
   }
 
   .dalbe-header__search-input {
     width: 100%;
-    padding: 0.625rem var(--padding-lg);
+    min-width: 0;
+    padding: 0.625rem 32px 0.625rem var(--padding-lg);
     border: 1px solid var(--color-border);
     border-radius: 4px 0 0 4px;
     font-size: 0.9375rem;
     font-family: inherit;
+  }
+
+  /* dalbe: the browser's own native search-clear "X" (rendered inside the
+     input via this pseudo-element once text is typed) can visually
+     overlap the adjacent navy submit button, especially once the field
+     gets narrow on mobile -- we already have our own submit icon, so the
+     native one is redundant, not just cramped. */
+  .dalbe-header__search-input::-webkit-search-cancel-button {
+    display: none;
   }
 
   .dalbe-header__search-submit {
@@ -216,6 +278,161 @@
   .dalbe-header__search-submit svg {
     width: var(--icon-size-sm);
     height: var(--icon-size-sm);
+  }
+
+  .dalbe-header__search-form {
+    display: flex;
+    flex: 1 1 auto;
+    width: 100%;
+    position: relative;
+  }
+
+  .dalbe-header__search-reset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    right: 56px;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--color-foreground-secondary, #666666);
+    cursor: pointer;
+  }
+
+  .dalbe-header__search-reset .svg-wrapper,
+  .dalbe-header__search-reset svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .dalbe-header__search-reset[hidden] {
+    display: none;
+  }
+
+  /* dalbe: visibility requires BOTH real content inside the results box
+     AND focus somewhere in the search widget (input, reset button, or a
+     result link/pill -- all descendants of .dalbe-header__search, so
+     :focus-within stays true while clicking a result). Content alone
+     isn't enough: connectedCallback() in predictive-search.js proactively
+     loads a "recently viewed" empty-state into this box on page load
+     whenever the visitor has any, so a content-only check would pop the
+     dropdown open unprompted. Tying it to :focus-within also means
+     clicking anywhere outside the widget closes it, since that's exactly
+     when focus leaves the container. */
+  .dalbe-header__search-results-wrapper {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    margin-top: 8px;
+    background: var(--color-background, #ffffff);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+    overflow: hidden;
+  }
+
+  .dalbe-header__search:focus-within .dalbe-header__search-results-wrapper:has(.dalbe-header__search-results > *) {
+    display: block;
+  }
+
+  .dalbe-header__search-results {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* dalbe: branded styling layered on top of the native predictive-search
+     markup -- title/pill/no-results are native classes re-skinned in
+     place, but the product results themselves render our own
+     dalbe-product-card (snippets/dalbe-product-card.liquid, the same
+     card used on collection grids and carousels) via
+     predictive-search-products-list.liquid, just scaled down to fit the
+     dropdown's narrow grid cells. Collections/pages/articles/query pills
+     still go through native markup (predictive-search-resource-carousel.liquid),
+     so only the product card was worth forking here. */
+  .dalbe-header__search-results .predictive-search-results__title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dalbe-red);
+  }
+
+  .dalbe-header__search-results .predictive-search-results__wrapper-products {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .dalbe-header__search-results .dalbe-product-card {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .dalbe-header__search-results .dalbe-product-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .dalbe-header__search-results .dalbe-product-card__img-wrap {
+    width: calc(100% + 20px);
+    margin: -10px -10px 8px;
+    padding: 8px;
+  }
+
+  .dalbe-header__search-results .dalbe-product-card__name {
+    font-size: 0.75rem;
+    min-height: 2.3em;
+    margin: 0 0 6px;
+  }
+
+  .dalbe-header__search-results .dalbe-product-card__price {
+    font-size: 0.875rem;
+    margin: 0 0 8px;
+  }
+
+  .dalbe-header__search-results .dalbe-product-card__badge {
+    top: 8px;
+    left: 8px;
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  /* dalbe: at this width the pill radius from the full-size button (999px)
+     turns into a bulging blob once "Adaugă în coș" wraps to two lines, and
+     the icon ends up stranded beside the first line only -- so this
+     variant drops the icon and switches to a small fixed radius that
+     still reads as a clean rounded button with the text centered across
+     both lines. */
+  .dalbe-header__search-results .dalbe-product-card .add-to-cart-button {
+    border-radius: 10px !important;
+    font-size: 0.6875rem !important;
+    line-height: 1.25;
+    padding: 8px 6px !important;
+  }
+
+  .dalbe-header__search-results .dalbe-product-card .add-to-cart-icon {
+    display: none;
+  }
+
+  .dalbe-header__search-results .predictive-search-results__pill {
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+  }
+
+  .dalbe-header__search-results .predictive-search-results__pill:hover {
+    border-color: var(--dalbe-navy);
+    background: #f4f5fb !important;
+  }
+
+  .dalbe-header__search-results .predictive-search-results__no-results {
+    color: #6b7280;
+    text-align: center;
   }
 
   .dalbe-header__phone {
@@ -292,17 +509,53 @@
   }
 
   @media screen and (max-width: 989px) {
+    .dalbe-header__row {
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0.625rem;
+      padding-inline: 1rem;
+    }
+
     .dalbe-header__phone {
       display: none;
+    }
+
+    /* dalbe: logo + search + 3 action icons genuinely don't have room to
+       coexist on one row at mobile widths -- even after freeing up every
+       spare pixel (icon-only actions, no phone), the search input still
+       only got ~115px, too narrow to read what you're typing. Standard
+       fix: logo and actions share row 1, search bar gets its own full
+       -width row 2 below, rather than fighting the other two for scraps
+       of a single row's width. */
+    .dalbe-header__brand {
+      order: 1;
+    }
+
+    .dalbe-header__actions {
+      order: 2;
+      flex: 0 0 auto;
+      gap: 0.75rem;
+    }
+
+    .dalbe-header__middle {
+      order: 3;
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 0;
     }
 
     .dalbe-header__search {
       flex: 1 1 auto;
       width: auto;
+      min-width: 0;
     }
 
-    .dalbe-header__actions {
-      gap: var(--gap-md);
+    /* dalbe: three labeled icons (Wishlist/Contul meu/Coș) plus the logo
+       and a flexible search bar don't fit one mobile row — the text
+       labels were overflowing past the viewport edge. Icon + cart-count
+       badge stay, the text labels collapse to icon-only on mobile. */
+    .dalbe-header__action > span:not(.svg-wrapper):not(.dalbe-header__cart-count) {
+      display: none;
     }
   }
 {% endstylesheet %}

@@ -819,8 +819,19 @@
 
   .dalbe-product-brand {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 8px 12px;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .dalbe-product-brand:hover {
+    opacity: 0.75;
+  }
+
+  .dalbe-product-brand:hover .dalbe-product-brand__name {
+    text-decoration: underline;
   }
 
   .dalbe-product-brand__label {
@@ -843,10 +854,45 @@
   }
 
   .dalbe-product-brand__name {
+    min-width: 0;
     font-size: 0.8125rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    color: var(--dalbe-red);
+  }
+
+  .dalbe-product-sku {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  .dalbe-product-sku__label {
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .dalbe-product-sku__value {
+    color: #6b7280;
+  }
+
+  .dalbe-product-wishlist {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #2d3748;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: color 0.2s ease;
+  }
+
+  .dalbe-product-wishlist .svg-wrapper svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .dalbe-product-wishlist:hover {
     color: var(--dalbe-red);
   }
 {% endstyle %}

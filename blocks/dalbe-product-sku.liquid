@@ -1,0 +1,25 @@
+{%- doc -%}
+  PDP SKU / product code display. Custom rather than the native `sku`
+  block (which isn't in _product-details' allowed block-type list) so it
+  can cleanly hide itself via Liquid when the variant has no SKU set.
+{%- enddoc -%}
+
+{% liquid
+  assign variant = closest.product.selected_or_first_available_variant
+  assign sku = variant.sku
+%}
+
+{% if sku != blank %}
+  <p class="dalbe-product-sku">
+    <span class="dalbe-product-sku__label">SKU:</span>
+    <span class="dalbe-product-sku__value">{{ sku }}</span>
+  </p>
+{% endif %}
+
+{% schema %}
+{
+  "name": "SKU produs (custom)",
+  "tag": null,
+  "settings": []
+}
+{% endschema %}

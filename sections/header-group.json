@@ -25,7 +25,7 @@
         "link_promotii": {
           "type": "link",
           "settings": {
-            "label": "Promotiile saptamanii",
+            "label": "Promoțiile săptămânii",
             "link": "/collections/promoțiile-saptamanii"
           }
         },
@@ -75,7 +75,7 @@
       ],
       "settings": {
         "trigger_label": "Categorii",
-        "trigger_message": "Livrare gratuita pentru orice comanda"
+        "trigger_message": "Livrare gratuită pentru orice comandă"
       }
     }
   },

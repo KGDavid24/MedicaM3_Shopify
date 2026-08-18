@@ -163,8 +163,31 @@
     }
 
     .dalbe-utility-links__item {
+      /* dalbe: was forced to a full-width single-column stack -- the
+         title/subtitle's white-space:nowrap (below) kept each tile as
+         wide as its longest unwrapped line (e.g. "Consultanță de
+         Specialitate"), which a flex item won't shrink below by
+         default, overriding this 40% basis entirely. Allowing the text
+         to wrap is what actually lets 2 tiles fit per row. */
       flex: 1 1 40%;
       max-width: 200px;
+      padding: 12px 10px;
+      gap: 8px;
+    }
+
+    .dalbe-utility-links__icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .dalbe-utility-links__title {
+      font-size: 0.8125rem;
+      white-space: normal;
+    }
+
+    .dalbe-utility-links__subtitle {
+      font-size: 0.6875rem;
+      white-space: normal;
     }
 
     /* Hide the lines on mobile so they don't look messy when stacked */

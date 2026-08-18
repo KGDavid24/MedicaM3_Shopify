@@ -141,6 +141,8 @@
     "quantity": "Cantitate",
     "product_total": "Total produs",
     "cart_estimated_total": "Total estimat",
+    "free_shipping_remaining_html": "Mai adaugă produse de <strong>{{ amount }}</strong> pentru a beneficia de livrare gratuită la comenzi peste {{ threshold }}.",
+    "free_shipping_qualified": "Ai livrare gratuită la această comandă!",
     "seller_note": "Instrucțiuni speciale",
     "cart_subtotal": "Subtotal",
     "discounts": "Reduceri",

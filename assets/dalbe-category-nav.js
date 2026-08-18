@@ -47,10 +47,13 @@ class DalbeCategoryNav extends HTMLElement {
 
   #openDrawer = () => {
     // dalbe: on the homepage the panel is locked permanently open via CSS
-    // (see [data-locked-open] in dalbe-category-nav.liquid) — the trigger
-    // has nothing to do there. Everywhere else it now toggles the panel
-    // at desktop widths too, not just on mobile: click again to close.
-    if (this.hasAttribute('data-locked-open')) return;
+    // (see [data-locked-open] in dalbe-category-nav.liquid) — but that
+    // "always visible beside the hero" behavior is desktop-only (the CSS
+    // rule it relies on only applies at >=990px). On mobile there's no
+    // permanently-open panel, so the trigger must still open/close the
+    // drawer normally even on the homepage — bailing out unconditionally
+    // here made the button do nothing at all on the mobile homepage.
+    if (this.hasAttribute('data-locked-open') && window.matchMedia(DESKTOP_BREAKPOINT).matches) return;
 
     if (window.matchMedia(DESKTOP_BREAKPOINT).matches && this.hasAttribute('data-open')) {
       this.#closeDrawer();

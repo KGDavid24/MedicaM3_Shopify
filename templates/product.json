@@ -8,6 +8,9 @@
  * ------------------------------------------------------------
  */{
   "sections": {
+    "breadcrumbs_dalbe": {
+      "type": "dalbe-breadcrumbs"
+    },
     "main": {
       "type": "product-information",
       "blocks": {
@@ -172,11 +175,17 @@
                     "padding-inline-end": 0
                   },
                   "blocks": {}
+                },
+                "wishlist_dalbe": {
+                  "type": "dalbe-product-wishlist",
+                  "settings": {},
+                  "blocks": {}
                 }
               },
               "block_order": [
                 "text_xrnftG",
-                "price_tVjtKg"
+                "price_tVjtKg",
+                "wishlist_dalbe"
               ]
             },
             "inventory_stock_dalbe": {
@@ -291,7 +300,7 @@
               "type": "group",
               "settings": {
                 "content_direction": "row",
-                "vertical_on_mobile": true,
+                "vertical_on_mobile": false,
                 "horizontal_alignment": "space-between",
                 "vertical_alignment": "center",
                 "align_baseline": false,
@@ -508,61 +517,56 @@
               },
               "block_order": ["group_trust_shipping", "group_trust_secure", "group_trust_quality"]
             },
-            "brand_eyebrow_dalbe": {
-              "type": "dalbe-product-brand",
-              "settings": {},
-              "blocks": {}
-            },
-            "text_desc_label_dalbe": {
-              "type": "text",
+            "group_meta_dalbe": {
+              "type": "group",
               "settings": {
-                "text": "<p>Descriere</p>",
-                "width": "100%",
-                "max_width": "normal",
-                "alignment": "left",
-                "type_preset": "custom",
-                "font": "var(--font-body--family)",
-                "font_size": "0.8125rem",
-                "line_height": "normal",
-                "letter_spacing": "loose",
-                "case": "uppercase",
-                "wrap": "pretty",
-                "text_color": "#e9324e",
-                "background": false,
-                "background_color": "#00000026",
-                "corner_radius": 0,
+                "content_direction": "row",
+                "vertical_on_mobile": false,
+                "horizontal_alignment": "space-between",
+                "vertical_alignment": "center",
+                "align_baseline": false,
+                "horizontal_alignment_flex_direction_column": "flex-start",
+                "vertical_alignment_flex_direction_column": "flex-start",
+                "gap": 16,
+                "width": "fill",
+                "custom_width": 100,
+                "width_mobile": "fill",
+                "custom_width_mobile": 100,
+                "height": "fit",
+                "custom_height": 100,
+                "background_media": "none",
+                "background_color": "#f4f5fb",
+                "video_position": "cover",
+                "background_image_position": "cover",
+                "toggle_overlay": false,
+                "overlay_color": "#00000026",
+                "overlay_style": "solid",
+                "gradient_direction": "to top",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_color": "",
+                "border_radius": 14,
+                "open_in_new_tab": false,
+                "placeholder": "",
                 "padding-block-start": 16,
-                "padding-block-end": 0,
-                "padding-inline-start": 0,
-                "padding-inline-end": 0
+                "padding-block-end": 16,
+                "padding-inline-start": 16,
+                "padding-inline-end": 16
               },
-              "blocks": {}
-            },
-            "text_aEtTtq": {
-              "type": "text",
-              "name": "t:names.product_description",
-              "settings": {
-                "text": "{{ closest.product.description }}",
-                "width": "100%",
-                "max_width": "normal",
-                "alignment": "left",
-                "type_preset": "rte",
-                "font": "var(--font-body--family)",
-                "font_size": "1rem",
-                "line_height": "normal",
-                "letter_spacing": "normal",
-                "case": "none",
-                "wrap": "pretty",
-                "text_color": "",
-                "background": true,
-                "background_color": "#f8f9fc",
-                "corner_radius": 16,
-                "padding-block-start": 20,
-                "padding-block-end": 20,
-                "padding-inline-start": 20,
-                "padding-inline-end": 20
+              "blocks": {
+                "sku_dalbe": {
+                  "type": "dalbe-product-sku",
+                  "settings": {},
+                  "blocks": {}
+                },
+                "brand_eyebrow_dalbe": {
+                  "type": "dalbe-product-brand",
+                  "settings": {},
+                  "blocks": {}
+                }
               },
-              "blocks": {}
+              "block_order": ["sku_dalbe", "brand_eyebrow_dalbe"]
             }
           },
           "block_order": [
@@ -572,13 +576,64 @@
             "variant_picker_R3rGDr",
             "buy_buttons_eYQEYi",
             "group_trust_dalbe",
-            "brand_eyebrow_dalbe",
-            "text_desc_label_dalbe",
-            "text_aEtTtq"
+            "group_meta_dalbe"
           ]
+        },
+        "text_desc_label_dalbe": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Descriere</p>",
+            "width": "100%",
+            "max_width": "normal",
+            "alignment": "left",
+            "type_preset": "custom",
+            "font": "var(--font-body--family)",
+            "font_size": "0.8125rem",
+            "line_height": "normal",
+            "letter_spacing": "loose",
+            "case": "uppercase",
+            "wrap": "pretty",
+            "text_color": "#e9324e",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 32,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "text_aEtTtq": {
+          "type": "text",
+          "name": "t:names.product_description",
+          "settings": {
+            "text": "{{ closest.product.description }}",
+            "width": "100%",
+            "max_width": "normal",
+            "alignment": "left",
+            "type_preset": "rte",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text_color": "",
+            "background": true,
+            "background_color": "#f8f9fc",
+            "corner_radius": 16,
+            "padding-block-start": 20,
+            "padding-block-end": 20,
+            "padding-inline-start": 20,
+            "padding-inline-end": 20
+          },
+          "blocks": {}
         }
       },
       "block_order": [
+        "text_desc_label_dalbe",
+        "text_aEtTtq",
         "disclosures_g9mWze"
       ],
       "settings": {
@@ -648,6 +703,7 @@
     }
   },
   "order": [
+    "breadcrumbs_dalbe",
     "main",
     "product_recommendations_qggXJq"
   ]

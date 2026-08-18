@@ -772,10 +772,34 @@
       display: block;
     }
 
+    /* dalbe: .dalbe-category-nav-section (the section wrapper, base rule
+       above) is itself position:relative + z-index:var(--layer-menu-drawer)
+       (18) -- that traps every descendant's z-index, including the panel's
+       own below, inside an 18-ceiling stacking context. dalbe-header.liquid
+       now gives .dalbe-header a hardcoded z-index:200 (predictive-search
+       dropdown stacking fix) with an UNTRAPPED wrapper, so it was rendering
+       over the top ~135px of this drawer -- covering the sidebar header bar
+       and the first category entirely -- no matter how high the panel's own
+       z-index went. Raising the trapping wrapper itself, mobile-only, is
+       the actual fix; desktop's flyout/hero stacking still needs its
+       original 18 and is untouched.
+
+       Gated on [data-open] via :has() rather than applied unconditionally --
+       this same wrapper also holds the always-visible trigger-bar (the
+       "Categorii" pill), which is on-screen even when the drawer is
+       closed. An unconditional bump elevated that bar's stacking context
+       too, putting it above .dalbe-header at all times -- including over
+       the predictive-search dropdown nested inside the header, which is
+       exactly the "still under something it shouldn't be" bug this
+       introduced. Only escalate while the drawer itself is actually open. */
+    .dalbe-category-nav-section:has(.dalbe-category-nav[data-open]) {
+      z-index: 201;
+    }
+
     .dalbe-category-nav__panel {
       position: fixed;
       inset: 0;
-      z-index: var(--layer-menu-drawer);
+      z-index: 201;
     }
 
     .dalbe-category-nav__backdrop {
@@ -818,13 +842,51 @@
       display: none;
     }
 
+    /* dalbe: .dalbe-category-nav__category (the <li>) is display:flex at
+       every breakpoint (base rule, above) so it can lay the category link
+       + expand chevron out side by side on desktop too. On mobile the
+       accordion becomes a third child of that same flex row once it's no
+       longer [hidden] -- without flex-wrap it just squeezed in beside the
+       link/button as a narrow third column instead of dropping below them
+       as its own row. */
+    .dalbe-category-nav__category {
+      flex-wrap: wrap;
+    }
+
     .dalbe-category-nav__accordion[hidden] {
       display: none;
     }
 
     .dalbe-category-nav__accordion {
-      padding-inline-start: var(--padding-lg);
+      /* dalbe: forces the accordion onto its own row within the wrapping
+         flex <li> above -- it's narrower than the remaining space next to
+         the link/button, so without an explicit 100% basis it would just
+         sit beside them instead of wrapping. */
+      flex: 1 1 100%;
+      /* dalbe: matches .dalbe-category-nav__category-link's own 48px left
+         padding (its text-start position) so a subcategory list lines up
+         directly under its own category's title instead of at an
+         unrelated indent (was var(--padding-lg), a different value —
+         the mismatch read as the subcategories not belonging to the
+         category above them). */
+      padding-inline-start: 48px;
+      padding-inline-end: 12px;
       padding-block-end: var(--padding-xs);
+    }
+
+    /* dalbe: a visible connector line ties the whole nested list back to
+       its parent category, and each deeper tier indents a bit further —
+       without this, depth-1 (bold headers) and depth-2 (leaf links) sat
+       flush at the same left edge with no visual hierarchy at all. */
+    .dalbe-category-nav__accordion .dalbe-category-nav__node-list {
+      border-inline-start: 2px solid #ebebeb;
+      padding-inline-start: 12px;
+      margin-block-end: 4px;
+    }
+
+    .dalbe-category-nav__accordion .dalbe-category-nav__node-list .dalbe-category-nav__node-list {
+      border-inline-start-color: transparent;
+      padding-inline-start: 14px;
     }
   }
 {% endstylesheet %}
