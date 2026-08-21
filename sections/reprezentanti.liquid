@@ -1,0 +1,427 @@
+{%- doc -%}
+  Regional sales reps — an interactive Leaflet/OpenStreetMap map paired
+  with a searchable, clickable sidebar list. Each rep is a block carrying
+  its own coordinates; clicking a list entry flies the map to that marker
+  and opens its popup, and the search box filters the list live on region,
+  name and address.
+
+  Built for templates/page.reprezentanti.json (a dedicated page), but the
+  section is instance-safe: every id is scoped with section.id and the JS
+  is scoped to its own root element, so two instances on one page won't
+  fight over a shared "ReprezentantiMap" id.
+
+  Leaflet loads from unpkg, version-pinned to 1.9.4 with SRI hashes. The
+  pin is deliberate and must stay: an unversioned CDN URL is exactly how
+  a third-party map silently broke on a previous project when upstream
+  shipped a major. The tags sit inside this section so the library only
+  downloads on pages that actually render the map.
+{%- enddoc -%}
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<section
+  class="reprezentanti-section"
+  data-reprezentanti-root
+  id="Reprezentanti-{{ section.id }}"
+>
+  <div class="page-width">
+    {% if section.settings.heading != blank %}
+      <h1 class="reprezentanti-heading">{{ section.settings.heading | escape }}</h1>
+    {% endif %}
+
+    <div class="reprezentanti-container">
+      <div class="reprezentanti-map-wrapper">
+        <div
+          class="reprezentanti-map"
+          data-reprezentanti-map
+          id="ReprezentantiMap-{{ section.id }}"
+        ></div>
+      </div>
+
+      <div class="reprezentanti-sidebar">
+        <div class="reprezentanti-search">
+          <label class="visually-hidden" for="ReprezentantiSearch-{{ section.id }}">
+            {{ section.settings.search_placeholder | escape }}
+          </label>
+          <input
+            type="text"
+            id="ReprezentantiSearch-{{ section.id }}"
+            data-reprezentanti-search
+            placeholder="{{ section.settings.search_placeholder | escape }}"
+          >
+        </div>
+
+        <div class="reprezentanti-list" data-reprezentanti-list>
+          {% for block in section.blocks %}
+            <div
+              class="reprezentanti-item"
+              data-reprezentanti-item
+              data-lat="{{ block.settings.lat }}"
+              data-lng="{{ block.settings.lng }}"
+              data-title="{{ block.settings.title | escape }}"
+              data-search="{{ block.settings.region | downcase }} {{ block.settings.title | downcase }} {{ block.settings.address | downcase }}"
+              {{ block.shopify_attributes }}
+            >
+              <span class="region-title">{{ block.settings.region | escape }}</span>
+              <div class="rep-details">
+                <p class="rep-name"><strong>{{ block.settings.title | escape }}</strong></p>
+                <p class="rep-address">{{ block.settings.address | escape }}</p>
+                {% if block.settings.phone != blank %}
+                  <p class="rep-phone">
+                    <a href="tel:{{ block.settings.phone | remove: ' ' | remove: '-' }}">{{ block.settings.phone }}</a>
+                  </p>
+                {% endif %}
+                {% if block.settings.email != blank %}
+                  <p class="rep-email">
+                    <a href="mailto:{{ block.settings.email }}">{{ block.settings.email }}</a>
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    function initReprezentantiMap(root) {
+      if (!root || typeof L === 'undefined') return;
+
+      var mapElement = root.querySelector('[data-reprezentanti-map]');
+      if (!mapElement) return;
+
+      // dalbe: the theme editor re-renders the section without a full page
+      // reload, so Leaflet would refuse to re-init on a container it has
+      // already claimed. Clearing its marker lets the map rebuild cleanly.
+      if (mapElement._leaflet_id) {
+        mapElement._leaflet_id = null;
+        mapElement.innerHTML = '';
+      }
+
+      // Centrul României
+      var map = L.map(mapElement).setView([45.9432, 24.9668], 7);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      var items = root.querySelectorAll('[data-reprezentanti-item]');
+      var bounds = [];
+
+      items.forEach(function (item) {
+        var lat = parseFloat(item.dataset.lat);
+        var lng = parseFloat(item.dataset.lng);
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        var title = item.dataset.title || '';
+        var addressEl = item.querySelector('.rep-address');
+        var phoneEl = item.querySelector('.rep-phone');
+        var address = addressEl ? addressEl.innerText : '';
+        var phone = phoneEl ? phoneEl.innerText : '';
+
+        var marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup(
+          '<strong>' + title + '</strong><br>' + address + (phone ? '<br>' + phone : '')
+        );
+        bounds.push([lat, lng]);
+
+        item.addEventListener('click', function () {
+          map.setView([lat, lng], 10);
+          marker.openPopup();
+          items.forEach(function (other) {
+            other.classList.toggle('is-active', other === item);
+          });
+        });
+      });
+
+      // dalbe: frame all the pins rather than trusting the fixed country
+      // view — with reps clustered in one region a national zoom leaves
+      // them in a huddle, and a single rep would sit unhelpfully small.
+      if (bounds.length > 1) {
+        map.fitBounds(bounds, { padding: [40, 40] });
+      } else if (bounds.length === 1) {
+        map.setView(bounds[0], 10);
+      }
+
+      // dalbe: strips diacritics so a query typed on a plain keyboard
+      // still matches the data. Romanian names and counties are full of
+      // ș/ț/ă/â/î, but almost nobody types them into a search box — before
+      // this, "timis" matched nothing at all against "Timiș", and
+      // "bucuresti" missed "București". NFD splits a letter into its base
+      // plus a combining mark, and the range below drops those marks
+      // (U+0326 comma-below and U+0327 cedilla included, so both the
+      // correct ș and the commonly mis-encoded ş fold to the same "s").
+      function fold(value) {
+        return (value || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[̀-ͯ]/g, '');
+      }
+
+      // Folded once up front rather than on every keystroke.
+      items.forEach(function (item) {
+        item._searchFolded = fold(item.dataset.search);
+      });
+
+      var searchInput = root.querySelector('[data-reprezentanti-search]');
+      if (searchInput) {
+        searchInput.addEventListener('input', function () {
+          var query = fold(this.value.trim());
+          items.forEach(function (item) {
+            item.style.display = item._searchFolded.indexOf(query) !== -1 ? '' : 'none';
+          });
+        });
+      }
+    }
+
+    function initAll() {
+      document.querySelectorAll('[data-reprezentanti-root]').forEach(initReprezentantiMap);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAll);
+    } else {
+      initAll();
+    }
+
+    // dalbe: matched by looking for our own map inside the section that
+    // just loaded, rather than sniffing the section id for a name. The id
+    // is whatever key the template gives the section, so a name-based
+    // check silently stops firing the moment the section is renamed or
+    // added under a different key in the theme editor.
+    document.addEventListener('shopify:section:load', function (event) {
+      var root = event.target.querySelector('[data-reprezentanti-root]');
+      if (root) initReprezentantiMap(root);
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .reprezentanti-section {
+    padding: 40px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  }
+
+  .reprezentanti-heading {
+    text-align: left;
+    margin-bottom: 20px;
+    font-size: 28px;
+    text-transform: uppercase;
+    /* dalbe: brand navy rather than the #003366 the original draft used —
+       every other heading on this site is --dalbe-navy, and the two blues
+       are close enough to read as a mistake rather than a choice. */
+    color: var(--dalbe-navy, #003366);
+    font-weight: 700;
+  }
+
+  .reprezentanti-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  @media (min-width: 992px) {
+    .reprezentanti-container {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+
+  .reprezentanti-map-wrapper {
+    height: 550px;
+    width: 100%;
+  }
+
+  .reprezentanti-map {
+    width: 100%;
+    height: 100%;
+    /* Keeps Leaflet's own panes from painting over the site header. */
+    z-index: 1;
+  }
+
+  .reprezentanti-sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 550px;
+    background: #fff;
+    border-left: 1px solid #e0e0e0;
+  }
+
+  @media screen and (max-width: 991px) {
+    /* dalbe: stacked layout — the left border would read as a stray rule
+       across the top of the list once the sidebar sits under the map. */
+    .reprezentanti-sidebar {
+      border-left: none;
+      border-top: 1px solid #e0e0e0;
+    }
+  }
+
+  .reprezentanti-search {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    background: #f9f9f9;
+  }
+
+  .reprezentanti-search input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc !important;
+    background: #ffffff !important;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .reprezentanti-list {
+    overflow-y: auto;
+    flex-grow: 1;
+  }
+
+  .reprezentanti-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .reprezentanti-item:hover,
+  .reprezentanti-item.is-active {
+    background: #f1f7fc;
+  }
+
+  .region-title {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: var(--dalbe-navy, #003366);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  .rep-details p {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .rep-details a {
+    color: var(--dalbe-navy, #0056b3);
+    text-decoration: none;
+  }
+
+  .rep-details a:hover {
+    text-decoration: underline;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reprezentanti Zonali",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "REPREZENTANȚI ZONALI"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Text căutare",
+      "default": "Căutare după adresă sau nume..."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "representative",
+      "name": "Reprezentant",
+      "settings": [
+        {
+          "type": "text",
+          "id": "region",
+          "label": "Judet / Regiune",
+          "default": "București"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Nume Reprezentant",
+          "default": "Nume Prenume"
+        },
+        {
+          "type": "text",
+          "id": "address",
+          "label": "Adresa",
+          "default": "București, România"
+        },
+        {
+          "type": "text",
+          "id": "phone",
+          "label": "Telefon",
+          "default": "0744000000"
+        },
+        {
+          "type": "text",
+          "id": "email",
+          "label": "Email",
+          "default": "email@medicam3.ro"
+        },
+        {
+          "type": "text",
+          "id": "lat",
+          "label": "Latitude (ex: 44.4268)",
+          "default": "44.4268"
+        },
+        {
+          "type": "text",
+          "id": "lng",
+          "label": "Longitude (ex: 26.1025)",
+          "default": "26.1025"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reprezentanti Zonali",
+      "blocks": [
+        {
+          "type": "representative",
+          "settings": {
+            "region": "București",
+            "title": "Reprezentant București",
+            "address": "București, România",
+            "lat": "44.4268",
+            "lng": "26.1025"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

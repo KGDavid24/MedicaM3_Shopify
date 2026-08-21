@@ -88,13 +88,22 @@
      with no breathing room at all. Contain + padding + its own rounded
      corners treats it as a product card sitting inside the navy frame
      instead, which is what actually reads as "enveloped in the blue". */
+  /* dalbe: width/height:100% + object-fit:contain forced this into a box
+     shaped like .media (532x260-ish), and this photo's own aspect ratio
+     doesn't match that box -- contain letterboxes it, so the visible
+     white-background rectangle sits smaller and centered, nowhere near
+     the box's own edges. border-radius on that outer box only rounds
+     empty letterbox space, never the rectangle a viewer actually sees.
+     Sizing to the image's own intrinsic bounds (max-width/max-height,
+     width/height auto) instead makes the <img> box hug the visible
+     pixels exactly, so its border-radius rounds the real corners. */
   .dalbe-nogag-promo__img {
-    width: 100%;
-    height: 100%;
-    max-height: 260px;
-    object-fit: contain;
-    border-radius: 12px;
     display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: 16px;
   }
 
   .dalbe-nogag-promo__content {

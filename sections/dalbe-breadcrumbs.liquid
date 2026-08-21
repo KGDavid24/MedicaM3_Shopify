@@ -5,7 +5,7 @@
   (product.collections -- products are tagged with both their specific
   category and every ancestor category, see the vendor/category tagging
   work referenced in HANDOFF.md) against the mega-menu tree
-  (metaobjects.menu_group/menu_node) at render time, picking the deepest
+  (the three per-group Shopify menus) at render time, picking the deepest
   matching category/subcategory pair. Products with no tag/collection
   match (a minority -- see HANDOFF.md's untagged-product notes) fall back
   to just Acasă > Product title, no category crumbs.
@@ -16,18 +16,24 @@
   assign crumb_category = null
   assign crumb_subcategory = null
 
+  # dalbe: walks the same three Shopify menus the mega menu renders (one
+  # per menu_group, named by its `menu_handle` field) — migrated from the
+  # old menu_node metaobject tree on 2026-08-20. Menu links expose .title
+  # and .url directly, so the crumbs below read those rather than the
+  # metaobject's .title.value / .url.value.url.
   for group in metaobjects.menu_group.values
     unless crumb_subcategory
-      for depth1 in group.children.value
+      assign group_menu = linklists[group.menu_handle.value]
+      for depth1 in group_menu.links
         unless crumb_subcategory
-          assign depth1_handle = depth1.url.value.url | split: '/collections/' | last
+          assign depth1_handle = depth1.url | split: '/collections/' | last
           if product_collection_handles contains depth1_handle and crumb_category == null
             assign crumb_category = depth1
           endif
 
-          for depth2 in depth1.children.value
+          for depth2 in depth1.links
             unless crumb_subcategory
-              assign depth2_handle = depth2.url.value.url | split: '/collections/' | last
+              assign depth2_handle = depth2.url | split: '/collections/' | last
               if product_collection_handles contains depth2_handle
                 assign crumb_category = depth1
                 assign crumb_subcategory = depth2
@@ -48,12 +54,12 @@
       </li>
       {% if crumb_category %}
         <li class="dalbe-breadcrumbs__item">
-          <a href="{{ crumb_category.url.value.url }}">{{ crumb_category.title.value }}</a>
+          <a href="{{ crumb_category.url }}">{{ crumb_category.title }}</a>
         </li>
       {% endif %}
       {% if crumb_subcategory %}
         <li class="dalbe-breadcrumbs__item">
-          <a href="{{ crumb_subcategory.url.value.url }}">{{ crumb_subcategory.title.value }}</a>
+          <a href="{{ crumb_subcategory.url }}">{{ crumb_subcategory.title }}</a>
         </li>
       {% endif %}
       <li class="dalbe-breadcrumbs__item dalbe-breadcrumbs__item--current" aria-current="page">

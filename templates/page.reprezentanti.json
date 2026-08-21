@@ -1,0 +1,70 @@
+{
+  "sections": {
+    "main": {
+      "type": "reprezentanti",
+      "blocks": {
+        "rep_bucuresti": {
+          "type": "representative",
+          "settings": {
+            "region": "București",
+            "title": "Reprezentant București",
+            "address": "București, România",
+            "phone": "",
+            "email": "",
+            "lat": "44.4268",
+            "lng": "26.1025"
+          }
+        },
+        "rep_cluj": {
+          "type": "representative",
+          "settings": {
+            "region": "Cluj",
+            "title": "Reprezentant Cluj",
+            "address": "Cluj-Napoca, România",
+            "phone": "",
+            "email": "",
+            "lat": "46.7712",
+            "lng": "23.6236"
+          }
+        },
+        "rep_timis": {
+          "type": "representative",
+          "settings": {
+            "region": "Timiș",
+            "title": "Reprezentant Timișoara",
+            "address": "Timișoara, România",
+            "phone": "",
+            "email": "",
+            "lat": "45.7489",
+            "lng": "21.2087"
+          }
+        },
+        "rep_iasi": {
+          "type": "representative",
+          "settings": {
+            "region": "Iași",
+            "title": "Reprezentant Iași",
+            "address": "Iași, România",
+            "phone": "",
+            "email": "",
+            "lat": "47.1585",
+            "lng": "27.6014"
+          }
+        }
+      },
+      "block_order": [
+        "rep_bucuresti",
+        "rep_cluj",
+        "rep_timis",
+        "rep_iasi"
+      ],
+      "settings": {
+        "heading": "REPREZENTANȚI ZONALI",
+        "search_placeholder": "Căutare după adresă sau nume..."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

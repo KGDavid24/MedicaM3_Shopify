@@ -1,0 +1,232 @@
+{%- doc -%}
+  PDP "Documente" panel — downloadable product documentation (manuals,
+  datasheets, certificates, declarations of conformity), split into two
+  tiers exactly as the client asked for: one list anyone can see, and a
+  second list that only renders for a signed-in customer.
+
+  Content comes from two product metafields, both `list.file_reference`
+  (create them in Admin → Settings → Custom data → Products):
+    custom.documents          — public, shown to everyone
+    custom.documents_private  — shown only when {{ customer }} exists
+
+  IMPORTANT, and worth passing on to the client: this hides the *links*,
+  not the files. Anything uploaded to Shopify Files is served from a
+  public CDN URL, so a person who already has (or guesses) that URL can
+  still open it without logging in — Shopify gives themes no way to put a
+  real auth check in front of a CDN asset. That's fine for the usual B2B
+  intent here ("don't show trade docs to casual visitors"), but it is NOT
+  access control for genuinely confidential material. Anything that must
+  be truly restricted needs a proper gated-download app, not a metafield.
+
+  Both lists degrade quietly: no metafield, or an empty one, renders
+  nothing at all rather than an empty heading.
+{%- enddoc -%}
+
+{% liquid
+  assign product_resource = closest.product
+  assign public_docs = product_resource.metafields.custom.documents.value
+  assign private_docs = product_resource.metafields.custom.documents_private.value
+
+  assign public_count = public_docs.size | default: 0
+  assign private_count = private_docs.size | default: 0
+  assign total_count = public_count | plus: private_count
+%}
+
+{% if total_count > 0 %}
+  <div class="dalbe-product-documents" {{ block.shopify_attributes }}>
+    <p class="dalbe-product-documents__label">{{ block.settings.heading }}</p>
+
+    {% if public_count > 0 %}
+      <ul class="dalbe-product-documents__list list-unstyled">
+        {% for doc in public_docs %}
+          {% render 'dalbe-document-link', doc: doc %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if private_count > 0 %}
+      {% if customer %}
+        <ul class="dalbe-product-documents__list list-unstyled">
+          {% for doc in private_docs %}
+            {% render 'dalbe-document-link', doc: doc, restricted: true %}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="dalbe-product-documents__gate">
+          <span class="dalbe-product-documents__gate-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <div class="dalbe-product-documents__gate-body">
+            <p class="dalbe-product-documents__gate-title">{{ block.settings.gate_title }}</p>
+            <p class="dalbe-product-documents__gate-text">{{ block.settings.gate_text }}</p>
+          </div>
+          <a href="{{ routes.account_login_url }}" class="dalbe-product-documents__gate-cta">
+            {{ block.settings.gate_cta }}
+          </a>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .dalbe-product-documents {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    margin-block-start: 32px;
+  }
+
+  .dalbe-product-documents__label {
+    margin: 0 0 12px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dalbe-red);
+  }
+
+  .dalbe-product-documents__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .dalbe-product-documents__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8f9fc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--dalbe-text, #222222);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .dalbe-product-documents__item:hover {
+    border-color: var(--dalbe-navy);
+    background: #eef0f8;
+  }
+
+  .dalbe-product-documents__ext {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--dalbe-navy);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .dalbe-product-documents__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  /* dalbe: marks a document that only signed-in customers can see, so a
+     logged-in user can tell at a glance which entries their account is
+     what unlocks. */
+  .dalbe-product-documents__restricted {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    color: var(--dalbe-navy);
+    opacity: 0.65;
+  }
+
+  .dalbe-product-documents__gate {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+    background: rgb(19 31 93 / 0.05);
+    border: 1px dashed #c7cce3;
+    border-radius: 12px;
+  }
+
+  .dalbe-product-documents__gate-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-product-documents__gate-body {
+    flex: 1 1 200px;
+    min-width: 0;
+  }
+
+  .dalbe-product-documents__gate-title {
+    margin: 0 0 2px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--dalbe-navy);
+  }
+
+  .dalbe-product-documents__gate-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--dalbe-text, #222222);
+  }
+
+  .dalbe-product-documents__gate-cta {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: var(--dalbe-navy);
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .dalbe-product-documents__gate-cta:hover {
+    background: var(--dalbe-red);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Documente produs",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titlu",
+      "default": "Documente"
+    },
+    {
+      "type": "text",
+      "id": "gate_title",
+      "label": "Titlu secțiune restricționată",
+      "default": "Documente disponibile doar pentru clienți autentificați"
+    },
+    {
+      "type": "text",
+      "id": "gate_text",
+      "label": "Text secțiune restricționată",
+      "default": "Autentifică-te pentru a accesa fișele tehnice și documentele complete."
+    },
+    {
+      "type": "text",
+      "id": "gate_cta",
+      "label": "Text buton autentificare",
+      "default": "Autentifică-te"
+    }
+  ]
+}
+{% endschema %}

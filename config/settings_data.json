@@ -103,7 +103,7 @@
     "palette_selected_variant_border": "{{ settings.color_palette.foreground }}",
     "variant_button_border_width": 1,
     "variant_button_radius": 14,
-    "variant_button_width": "equal-width-buttons",
+    "variant_button_width": "default-width-buttons",
     "content_for_index": [],
     "blocks": {
       "14060646107696862457": {

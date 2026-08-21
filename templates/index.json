@@ -6,8 +6,7 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */
-{
+ */{
   "sections": {
     "dalbe_hero_slideshow": {
       "type": "dalbe-hero-slideshow",
@@ -650,6 +649,15 @@
         "max_reviews": 12,
         "blocklist": ""
       }
+    },
+    "dalbe_reprezentanti_cta": {
+      "type": "dalbe-reprezentanti-cta",
+      "settings": {
+        "heading": "Caută reprezentantul din zona ta",
+        "text": "Echipa noastră de vânzări acoperă toată țara. Vezi pe hartă cine se ocupă de județul tău și ia legătura direct.",
+        "button_label": "Vezi reprezentanții",
+        "link": "shopify://pages/reprezentanti"
+      }
     }
   },
   "order": [
@@ -661,6 +669,7 @@
     "dalbe_services_grid_izAUzD",
     "dalbe_nogag_promo_home",
     "dalbe_experience_cta",
+    "dalbe_reprezentanti_cta",
     "dalbe_newsletter",
     "1786005651c5cdc92a",
     "dalbe_reviews_live"

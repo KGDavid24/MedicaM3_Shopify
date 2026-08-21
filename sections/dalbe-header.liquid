@@ -185,9 +185,14 @@
      from however wide the logo/action-icons happen to be. */
   .dalbe-header__row {
     position: relative;
+    /* dalbe: 100%, not 100vw — 100vw includes the vertical scrollbar and
+       the real centered content doesn't, so a vw-based offset put this
+       row half a scrollbar right of every native section on the page.
+       Only used for `left:` below (a width context), so % is safe here.
+       See dalbe-utility-links.liquid for the full write-up. */
     --dalbe-header-page-margin-offset: max(
       var(--page-margin),
-      calc((100vw - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--page-margin) * 2))) / 2)
+      calc((100% - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100% - var(--page-margin) * 2))) / 2)
     );
     --dalbe-header-left-margin: calc(var(--dalbe-header-page-margin-offset) + 280px);
   }
@@ -254,7 +259,23 @@
   .dalbe-header__search-input {
     width: 100%;
     min-width: 0;
-    padding: 0.625rem 32px 0.625rem var(--padding-lg);
+    padding: 0.625rem var(--padding-lg);
+    /* dalbe: the reset "X" is absolutely positioned at right:56px within
+       the form; the submit button eats the last 48px of that form, so the
+       X actually sits 8px-32px in from THIS input's own right edge. The
+       input reserved NO room for it at all, because native
+       `input.search-input { padding-inline: calc(...) 0 }` (specificity
+       0,1,1) outranks this rule's own padding (0,1,0) and zeroes the end
+       side -- so a long query ("compresor cu carcasa de insonorizare
+       pentru 3 unituri") ran its text straight underneath the icon.
+       Hence !important, the same override this file already needs for
+       border/background/placeholder against that identical native rule.
+
+       Deliberately only the END side: the native rule also sets the start
+       padding to 40px, which is what has actually been rendering (and
+       looks right), so forcing the whole shorthand would yank the text
+       24px leftward -- a visual change nobody asked for. */
+    padding-inline-end: 44px !important;
     /* dalbe: !important because this input also carries the generic
        native .search-input class (see markup below), and
        `input.search-input { border: 0px; background: transparent; }`

@@ -6,10 +6,12 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */{
+ */
+{
   "sections": {
     "breadcrumbs_dalbe": {
-      "type": "dalbe-breadcrumbs"
+      "type": "dalbe-breadcrumbs",
+      "settings": {}
     },
     "main": {
       "type": "product-information",
@@ -136,7 +138,7 @@
                     "width": "100%",
                     "max_width": "normal",
                     "alignment": "left",
-                    "type_preset": "h2",
+                    "type_preset": "h3",
                     "font": "var(--font-body--family)",
                     "font_size": "1rem",
                     "line_height": "normal",
@@ -160,7 +162,7 @@
                     "show_sale_price_first": true,
                     "show_installments": false,
                     "show_tax_info": false,
-                    "type_preset": "h3",
+                    "type_preset": "h4",
                     "width": "100%",
                     "alignment": "left",
                     "font": "var(--font-body--family)",
@@ -225,8 +227,8 @@
                 "custom_variant_text": "#131f5d",
                 "custom_variant_border": "#c7cce3",
                 "selected_variant_style_class": "custom",
-                "custom_selected_variant_background": "#e7e9f5",
-                "custom_selected_variant_text": "#131f5d",
+                "custom_selected_variant_background": "#131f5d",
+                "custom_selected_variant_text": "#ffffff",
                 "custom_selected_variant_border": "#131f5d",
                 "alignment": "left",
                 "padding-block-start": 0,
@@ -392,7 +394,10 @@
                       }
                     }
                   },
-                  "block_order": ["icon_shipping_dalbe", "text_shipping_dalbe"]
+                  "block_order": [
+                    "icon_shipping_dalbe",
+                    "text_shipping_dalbe"
+                  ]
                 },
                 "group_trust_secure": {
                   "type": "group",
@@ -452,7 +457,10 @@
                       }
                     }
                   },
-                  "block_order": ["icon_secure_dalbe", "text_secure_dalbe"]
+                  "block_order": [
+                    "icon_secure_dalbe",
+                    "text_secure_dalbe"
+                  ]
                 },
                 "group_trust_quality": {
                   "type": "group",
@@ -512,10 +520,17 @@
                       }
                     }
                   },
-                  "block_order": ["icon_quality_dalbe", "text_quality_dalbe"]
+                  "block_order": [
+                    "icon_quality_dalbe",
+                    "text_quality_dalbe"
+                  ]
                 }
               },
-              "block_order": ["group_trust_shipping", "group_trust_secure", "group_trust_quality"]
+              "block_order": [
+                "group_trust_shipping",
+                "group_trust_secure",
+                "group_trust_quality"
+              ]
             },
             "group_meta_dalbe": {
               "type": "group",
@@ -566,7 +581,10 @@
                   "blocks": {}
                 }
               },
-              "block_order": ["sku_dalbe", "brand_eyebrow_dalbe"]
+              "block_order": [
+                "sku_dalbe",
+                "brand_eyebrow_dalbe"
+              ]
             }
           },
           "block_order": [
@@ -629,11 +647,22 @@
             "padding-inline-end": 20
           },
           "blocks": {}
+        },
+        "documents_dalbe": {
+          "type": "dalbe-product-documents",
+          "settings": {
+            "heading": "Documente",
+            "gate_title": "Documente disponibile doar pentru clienți autentificați",
+            "gate_text": "Autentifică-te pentru a accesa fișele tehnice și documentele complete.",
+            "gate_cta": "Autentifică-te"
+          },
+          "blocks": {}
         }
       },
       "block_order": [
         "text_desc_label_dalbe",
         "text_aEtTtq",
+        "documents_dalbe",
         "disclosures_g9mWze"
       ],
       "settings": {

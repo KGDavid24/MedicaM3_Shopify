@@ -1,0 +1,66 @@
+{%- doc -%}
+  One row in the PDP Documente panel (blocks/dalbe-product-documents.liquid).
+
+  Shopify's `list.file_reference` metafield gives back file objects whose
+  original filename only survives inside the CDN URL, so the label and the
+  extension badge are both derived from that URL rather than from a
+  property — `.url` is the one thing every referenced file type reliably
+  exposes. The query string is stripped first (the CDN appends ?v=... ),
+  then url_decode restores spaces/diacritics that were percent-encoded on
+  upload, so "Fișă tehnică.pdf" doesn't render as "Fi%C8%99%C4%83...".
+
+  @param {object} doc - a file object from a list.file_reference metafield
+  @param {boolean} restricted - true for signed-in-only documents, adds a lock marker
+{%- enddoc -%}
+
+{% liquid
+  assign doc_url = doc.url
+  assign file_name = doc_url | split: '?' | first | split: '/' | last | url_decode
+  assign name_parts = file_name | split: '.'
+  assign extension = ''
+  if name_parts.size > 1
+    assign extension = name_parts | last | upcase
+  endif
+
+  # dalbe: prefer the file's alt text as the visible label. Shopify
+  # SANITIZES filenames on upload -- "Fișă tehnică test.pdf" is stored as
+  # "Fi_a_tehnica_test.pdf", with the diacritics replaced by underscores
+  # and unrecoverable from the URL. Since every document on this store is
+  # Romanian, the filename alone would read as mangled on nearly all of
+  # them. The alt field (Content → Files → "Add alt text") is free text,
+  # so it's the one place a clean "Fișă tehnică – V1200 S" can be typed.
+  # Falls back to the filename minus its extension, since the extension
+  # is already shown in the badge beside it.
+  assign display_name = file_name
+  if name_parts.size > 1
+    assign trimmed = '.' | append: name_parts.last
+    assign display_name = file_name | remove_last: trimmed
+  endif
+  if doc.alt != blank
+    assign display_name = doc.alt
+  endif
+%}
+
+{% if doc_url != blank %}
+  <li>
+    <a
+      href="{{ doc_url }}"
+      class="dalbe-product-documents__item"
+      target="_blank"
+      rel="noopener"
+    >
+      {% if extension != blank %}
+        <span class="dalbe-product-documents__ext">{{ extension }}</span>
+      {% endif %}
+      <span class="dalbe-product-documents__name">{{ display_name }}</span>
+      {% if restricted %}
+        <span
+          class="dalbe-product-documents__restricted"
+          title="{{ 'Disponibil pentru clienți autentificați' }}"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+      {% endif %}
+    </a>
+  </li>
+{% endif %}

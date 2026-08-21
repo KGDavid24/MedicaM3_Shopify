@@ -1,33 +1,45 @@
 {%- doc -%}
-  Recursively renders one tier of Menu Node metaobjects for the category navigation.
-  Depth 1 nodes are styled as column headers; deeper nodes are plain leaf links.
+  Recursively renders one tier of a Shopify navigation menu for the
+  category mega menu. Depth 1 links are styled as column headers; deeper
+  ones are plain leaf links.
 
-  @param {array} nodes - Array of resolved `menu_node` metaobjects (already `.value`-resolved).
+  Migrated from the old `menu_node` metaobject tree (2026-08-20). The
+  three lower tiers of the mega menu are now real Shopify menus, one per
+  menu_group, so the client can restructure them in Online Store →
+  Navigation without touching metaobjects. Only the top tier (the
+  Consumabile / Echipamente / Piese de schimb headings) is still a
+  metaobject — see sections/dalbe-category-nav.liquid.
+
+  A Shopify menu allows at most 3 nested levels
+  (https://shopify.dev/docs/api/liquid/objects/linklist — `levels`), which
+  is exactly why the split lands here: those 3 levels fit one menu, the
+  4th (the group heading) cannot.
+
+  @param {array} links - `linklist.links`, or a parent link's `.links`
   @param {number} [depth] - Recursion depth. Starts at 1 for the tier directly under a category.
 
   @example
-  {% render 'dalbe-category-nav-list', nodes: category.children.value %}
+  {% render 'dalbe-category-nav-list', links: category.links %}
 {%- enddoc -%}
 
 {% liquid
   assign depth = depth | default: 1
 %}
 <ul class="dalbe-category-nav__node-list list-unstyled" data-depth="{{ depth }}">
-  {% for node in nodes %}
+  {% for link in links %}
     {% liquid
-      assign child_nodes = node.children.value
-      assign has_children = child_nodes.size | default: 0
+      assign child_links = link.links
       assign next_depth = depth | plus: 1
     %}
     <li class="dalbe-category-nav__node dalbe-category-nav__node--depth-{{ depth }}">
       <a
-        href="{{ node.url.value.url }}"
+        href="{{ link.url }}"
         class="dalbe-category-nav__node-link"
       >
-        {{ node.title.value }}
+        {{ link.title }}
       </a>
-      {% if has_children > 0 %}
-        {% render 'dalbe-category-nav-list', nodes: child_nodes, depth: next_depth %}
+      {% if child_links.size > 0 %}
+        {% render 'dalbe-category-nav-list', links: child_links, depth: next_depth %}
       {% endif %}
     </li>
   {% endfor %}

@@ -81,14 +81,30 @@
 
       <ul class="dalbe-category-nav__groups list-unstyled">
         {% for group in metaobjects.menu_group.values %}
+          {% comment %}
+            dalbe: the group heading is still a menu_group metaobject, but
+            everything under it now comes from a real Shopify menu named by
+            that group's `menu_handle` field — so the client restructures
+            the categories in Online Store → Navigation, not in metaobjects.
+            A menu maxes out at 3 nested levels, which is exactly what the
+            three tiers below need; the heading itself is the 4th and so has
+            to live outside the menu.
+          {% endcomment %}
+          {% assign group_menu = linklists[group.menu_handle.value] %}
           <li class="dalbe-category-nav__group">
             <span class="dalbe-category-nav__group-title">{{ group.title.value }}</span>
             <ul class="dalbe-category-nav__categories list-unstyled">
-              {% for category in group.children.value %}
+              {% for category in group_menu.links %}
                 {% liquid
-                  assign category_children = category.children.value
+                  assign category_children = category.links
                   assign has_flyout = category_children.size | default: 0
-                  assign category_key = category.system.handle
+                  # dalbe: menu links have no stable handle of their own, and
+                  # titles repeat across groups ("Alte produse" is in all
+                  # three), so the flyout key is scoped by the group's own
+                  # handle plus position. The flyout loop further down walks
+                  # the same groups in the same order and rebuilds this
+                  # identical key — keep the two in sync.
+                  assign category_key = group.system.handle | append: '-' | append: forloop.index
                 %}
                 <li
                   class="dalbe-category-nav__category"
@@ -97,10 +113,10 @@
                   {% endif %}
                 >
                   <a
-                    href="{{ category.url.value.url }}"
+                    href="{{ category.url }}"
                     class="dalbe-category-nav__category-link"
                   >
-                    {{ category.title.value }}
+                    {{ category.title }}
                   </a>
                   {% if has_flyout > 0 %}
                     <button
@@ -117,7 +133,7 @@
                       data-accordion
                       hidden
                     >
-                      {% render 'dalbe-category-nav-list', nodes: category_children %}
+                      {% render 'dalbe-category-nav-list', links: category_children %}
                     </div>
                   {% endif %}
                 </li>
@@ -157,51 +173,77 @@
       class="dalbe-category-nav__flyout"
       data-flyout
     >
+      {% liquid
+        # dalbe: fallback pool for categories with no illustration of their
+        # own. Only a handful of the artwork actually depicts a specific
+        # category (see the case block below); the rest of the panels were
+        # rendering bare, so everything unmatched now draws from here in
+        # order, cycling once it runs out. Deliberately ORDERED rather than
+        # random: the list runs most-generic first (equipment, discs, burs)
+        # and the two unmistakably-orthodontic sketches last, so the odder
+        # pairings land on the fewest panels. A real random pick would also
+        # reshuffle on every page load, which would read as a glitch.
+        assign sketch_pool = 'dalbe-menu-sketch-laborator-echipamente.svg,dalbe-menu-sketch-cadcam-consumabile.svg,dalbe-menu-sketch-cadcam-echipamente.svg,dalbe-menu-sketch-cabinet-echipamente.svg,dalbe-menu-sketch-laborator-consumabile.svg,dalbe-menu-sketch-cabinet-consumabile.svg,dalbe-menu-sketch-ortodontie-laborator.svg,dalbe-menu-sketch-ortodontie.svg' | split: ','
+        assign sketch_cursor = 0
+      %}
       {% for group in metaobjects.menu_group.values %}
-        {% for category in group.children.value %}
+        {% assign group_menu = linklists[group.menu_handle.value] %}
+        {% for category in group_menu.links %}
           {% liquid
-            assign category_children = category.children.value
+            assign category_children = category.links
             assign has_flyout = category_children.size | default: 0
-            assign category_key = category.system.handle
+            # dalbe: must rebuild the SAME key the sidebar loop above emits
+            # (group handle + position) — that pairing is what associates a
+            # sidebar category with its flyout panel.
+            assign category_key = group.system.handle | append: '-' | append: forloop.index
 
-            # dalbe: per-category sketch illustrations scraped from the
-            # source site's own mega menu (each category's flyout there sets
-            # one as a ::before background-image on its dropdown panel).
-            # Matched by group + category title text rather than metaobject
-            # handle, since "Consumabile"/"Echipamente" repeat across
-            # groups and handles are auto-generated/not hand-authored.
-            assign sketch_map_key = group.title.value | append: '|' | append: category.title.value
+            # dalbe: decorative corner illustration, matching the source
+            # site's own mega menu. Keyed on the CATEGORY'S COLLECTION
+            # HANDLE, not its title: since the menu moved into Online Store
+            # → Navigation the client can rename categories freely, and a
+            # title-keyed map would silently drop the artwork the first time
+            # they did. (The original map was keyed on titles from an older
+            # taxonomy — "Produse Cabinet|Consumabile" — and had already
+            # stopped matching anything long before this rewrite.)
+            #
+            # Unmapped categories simply render no illustration, which the
+            # panel handles fine. To add one, drop the SVG in assets/ and
+            # add its collection handle here.
+            assign category_handle = category.url | split: '/collections/' | last | split: '?' | first
             assign sketch_asset = blank
-            case sketch_map_key
-              when 'Produse Cabinet|Consumabile'
+            case category_handle
+              when 'igiena-si-dezinfectie'
                 assign sketch_asset = 'dalbe-menu-sketch-cabinet-consumabile.svg'
-              when 'Produse Cabinet|Echipamente'
+              when 'sterilizare-si-dezinfectie'
                 assign sketch_asset = 'dalbe-menu-sketch-cabinet-echipamente.svg'
-              when 'Produse CAD-CAM|Consumabile'
-                assign sketch_asset = 'dalbe-menu-sketch-cadcam-consumabile.svg'
-              when 'Produse CAD-CAM|Echipamente'
+              when 'sisteme-cad-cam'
                 assign sketch_asset = 'dalbe-menu-sketch-cadcam-echipamente.svg'
-              when 'Produse Laborator|Consumabile'
+              when 'piese-de-mana'
                 assign sketch_asset = 'dalbe-menu-sketch-laborator-consumabile.svg'
-              when 'Produse Laborator|Echipamente'
-                assign sketch_asset = 'dalbe-menu-sketch-laborator-echipamente.svg'
-              when 'Produse Ortodontie|Ortodontie'
-                assign sketch_asset = 'dalbe-menu-sketch-ortodontie.svg'
-              when 'Produse Ortodontie|Ortodontie laborator'
-                assign sketch_asset = 'dalbe-menu-sketch-ortodontie-laborator.svg'
             endcase
+
+            # dalbe: anything without a specific match takes the next entry
+            # from the pool above. The cursor is page-scoped and only
+            # advances on a fallback, so the assignment is stable for a
+            # given menu structure — the same category gets the same
+            # illustration on every render, and only shifts if categories
+            # are added/removed/reordered in Navigation.
+            if sketch_asset == blank
+              assign sketch_index = sketch_cursor | modulo: sketch_pool.size
+              assign sketch_asset = sketch_pool[sketch_index]
+              assign sketch_cursor = sketch_cursor | plus: 1
+            endif
 
             # dalbe: caps the node-list's column-count based on this
             # category's TOTAL item count (depth-1 group headers + their
             # direct leaf links) — not just the group count. A category can
             # have plenty of group headers but few leaves under each one
-            # (e.g. Ortodontie: 13 groups, mostly 1-2 leaves each) and still
-            # end up thin once split across 3-4 columns; total item count
-            # reflects how much content there actually is either way.
+            # and still end up thin once split across 3-4 columns; total
+            # item count reflects how much content there actually is.
             assign total_item_count = 0
             for depth1_node in category_children
               assign total_item_count = total_item_count | plus: 1
-              assign leaf_count = depth1_node.children.value.size | default: 0
+              assign leaf_count = depth1_node.links.size | default: 0
               assign total_item_count = total_item_count | plus: leaf_count
             endfor
 
@@ -221,7 +263,7 @@
               style="--dalbe-content-columns: {{ content_columns }};"
               hidden
             >
-              {% render 'dalbe-category-nav-list', nodes: category_children %}
+              {% render 'dalbe-category-nav-list', links: category_children %}
               {% if sketch_asset != blank %}
                 <img
                   class="dalbe-category-nav__flyout-sketch"
@@ -432,6 +474,65 @@
     }
   }
 
+  /* dalbe: between 990px and ~1400px the three items in this bar can't
+     share one row. Measured at the widest they get: trigger 280px +
+     message 301px + links 718px = 1299px of content, which only fits once
+     the viewport passes ~1380px. Below that the links wrapped inside their
+     own flex box, orphaning "Ghid Client" onto a third line and inflating
+     the whole navy bar to three rows of uneven spacing.
+
+     Fixed by giving the MESSAGE its own row instead of letting the links
+     break: the links are navigation and belong together on one line,
+     while the message is a single self-contained sentence that reads fine
+     underneath. Nothing is hidden -- the free-shipping line the client
+     specifically asked for stays visible at every desktop width -- and the
+     bar goes to a deliberate two rows rather than a ragged three.
+
+     The links also drop to 15px with a tighter gap here, which brings the
+     row-1 requirement to 280 + 572 = 852px; the narrowest this query ever
+     applies to is 990px (910px of content), leaving ~58px of headroom so
+     font-rendering differences across platforms can't tip it back into
+     wrapping. */
+  @media screen and (min-width: 990px) and (max-width: 1399px) {
+    /* Tier 1 — tighten. At full size the row needs 1299px of content;
+       dropping the links and message to 15px with a tighter gap brings
+       that to ~1108px, which buys back roughly 150px of viewport before
+       anything has to move. */
+    .dalbe-category-nav__trigger-links {
+      gap: 14px;
+      flex-wrap: nowrap;
+    }
+
+    .dalbe-category-nav__trigger-link,
+    .dalbe-category-nav__trigger-message {
+      font-size: 0.9375rem;
+    }
+  }
+
+  /* Tier 2 — below ~1250px even the tightened row can't fit (it needs
+     ~1108px against 1170px of content at the boundary, and less below),
+     so the message finally takes its own line. Kept as a SEPARATE, lower
+     breakpoint on purpose: doing this at 1400px -- as an earlier pass did
+     -- split the bar into two rows across a ~150px band of widths where
+     it demonstrably still fit on one, which is exactly the range most
+     laptops sit in. The links never wrap in either tier; when something
+     has to give it's this single self-contained sentence, not the nav. */
+  @media screen and (min-width: 990px) and (max-width: 1249px) {
+    .dalbe-category-nav__trigger-bar {
+      flex-wrap: wrap;
+      row-gap: 2px;
+    }
+
+    .dalbe-category-nav__trigger-message {
+      /* order + 100% basis is what forces the wrap onto its own line;
+         the 280px indent keeps it starting at the sidebar's right edge,
+         exactly where it sits on wide screens. */
+      order: 3;
+      flex-basis: 100%;
+      padding-inline-start: 280px;
+    }
+  }
+
   .dalbe-category-nav__panel {
     display: none;
   }
@@ -525,11 +626,36 @@
   .dalbe-category-nav__expand .svg-wrapper {
     width: 12px;
     height: 12px;
-    transition: transform var(--animation-speed) var(--animation-easing);
+    /* dalbe: 180ms rather than var(--animation-speed) (125ms). That theme
+       default is tuned for small state changes like a hover colour, and it
+       was fine while this caret only flipped 180deg — but the open state is
+       now a 270deg spin (below), and three-quarters of a turn in an eighth
+       of a second reads as a flicker rather than a rotation. 180ms is the
+       middle ground settled on after trying 250ms: enough to read as a
+       spin, still quick enough not to lag the cursor when sweeping down
+       the sidebar and spinning each caret in turn. */
+    transition: transform 0.18s var(--animation-easing);
   }
 
-  .dalbe-category-nav__expand[aria-expanded='true'] .svg-wrapper {
-    transform: rotate(180deg);
+  /* dalbe: the caret points down when collapsed; open state lands it
+     pointing RIGHT rather than flipping it up. 270deg (not -90deg) is
+     deliberate — both end at the same angle, but the positive value makes
+     it travel three-quarters of a turn clockwise instead of a quarter turn
+     back, which is the "spin around" the client asked for. The transition
+     that animates it is on .dalbe-category-nav__expand .svg-wrapper above.
+
+     TWO selectors because a category opens two different ways, and only
+     one of them touches the button:
+       - mobile drawer: tapping the chevron runs #toggleAccordion, which
+         flips the button's own aria-expanded;
+       - desktop: HOVERING the row runs #activateFlyout, which sets
+         [data-active] on the <li> and never touches the button at all.
+     Keying only off aria-expanded (as the first pass did) therefore left
+     the caret stubbornly pointing down on desktop — the flyout would open
+     beside a chevron that hadn't moved. */
+  .dalbe-category-nav__expand[aria-expanded='true'] .svg-wrapper,
+  .dalbe-category-nav__category[data-active] .dalbe-category-nav__expand .svg-wrapper {
+    transform: rotate(270deg);
   }
 
   .dalbe-category-nav__node-link {
@@ -607,14 +733,38 @@
        expression stays correct here. See dalbe-hero-slideshow.liquid for
        the fuller version of this note. */
     .dalbe-category-nav-section {
+      /* dalbe: HORIZONTAL chain — 100%, not 100vw. 100vw includes the
+         vertical scrollbar while the real centered content excludes it,
+         so the vw version placed this section (and the header, hero and
+         utility row that mirror it) half a scrollbar right of every
+         native Horizon section — the reported "menu goes off-centre at
+         some resolutions", which only shows above 1520px because that's
+         where this branch of the max() starts to matter. This section is
+         a child of .page-wrapper (the real scroll container at >=990px),
+         so 100% here is the true, scrollbar-excluded content width.
+         Everything in this chain feeds grid-template-columns, a width
+         context, so % resolves correctly. */
       --dalbe-page-margin-offset: max(
+        var(--page-margin),
+        calc((100% - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100% - var(--page-margin) * 2))) / 2)
+      );
+
+      /* dalbe: VERTICAL chain — deliberately still 100vw, and kept as its
+         own separate copy rather than reusing the offset above. These
+         three feed --dalbe-hero-height, which is consumed by a `height`
+         property; a bare % there would resolve against the ancestor's
+         HEIGHT, not its width, and silently collapse (the long-standing
+         note at the top of this block). The ~half-scrollbar overshoot
+         costs under 2px of derived height here, which is invisible —
+         unlike the horizontal misalignment it caused above. */
+      --dalbe-hero-page-margin-offset: max(
         var(--page-margin),
         calc((100vw - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--page-margin) * 2))) / 2)
       );
-      --dalbe-left-margin: calc(var(--dalbe-page-margin-offset) + 280px);
+      --dalbe-left-margin: calc(var(--dalbe-hero-page-margin-offset) + 280px);
       --dalbe-content-width: min(
         calc(var(--page-width) - var(--page-margin) * 2),
-        calc(100vw - var(--dalbe-left-margin) - var(--dalbe-page-margin-offset))
+        calc(100vw - var(--dalbe-left-margin) - var(--dalbe-hero-page-margin-offset))
       );
       /* dalbe: never shorter than 25.3rem — this sidebar's own (now
          trimmed) content needs that much room. Below that, the hero image
@@ -636,7 +786,7 @@
          section's own central column narrower than it should be. */
       --dalbe-nav-content-width: min(
         calc(var(--page-width) - var(--page-margin) * 2),
-        calc(100vw - var(--dalbe-page-margin-offset) * 2)
+        calc(100% - var(--dalbe-page-margin-offset) * 2)
       );
       grid-template-columns: var(--dalbe-page-margin-offset) var(--dalbe-nav-content-width) var(--dalbe-page-margin-offset);
     }
@@ -676,8 +826,8 @@
          sliver — the content-aware column-count on
          .dalbe-category-nav__node-list below (fewer, taller columns for
          categories with little content) does most of that work already,
-         and this just fills in whatever gap is left with the sketch's own
-         space rather than leaving it to the balanced-column height alone.
+         and this just fills in whatever gap is left rather than leaving
+         it to the balanced-column height alone.
          max-height stays uncoupled from --dalbe-hero-height on the tall
          side — a genuinely deep category is much taller than the
          sidebar's simple 8-row list, so forcing a single matching height
@@ -728,6 +878,15 @@
          rarely the constraint here. */
       padding-block: var(--padding-md);
       padding-inline: var(--padding-xl);
+      /* dalbe: matches the flyout's own min-height so a short category's
+         panel still fills the drawer. The sketch below is pinned to
+         bottom:0 of THIS box, and without the floor a 3-item category
+         made a ~141px panel inside a 405px drawer — so the illustration
+         anchored to that short box and floated up near the headings
+         instead of sitting in the bottom-right corner. Taller categories
+         grow past this and the sketch follows their real bottom edge. */
+      min-height: var(--dalbe-hero-height, 30rem);
+      box-sizing: border-box;
     }
 
     .dalbe-category-nav__flyout-panel[hidden] {
@@ -757,6 +916,7 @@
       pointer-events: none;
       opacity: 0.9;
     }
+
 
     .dalbe-category-nav__node-list[data-depth='1'] {
       position: relative;
@@ -908,6 +1068,29 @@
        as its own row. */
     .dalbe-category-nav__category {
       flex-wrap: wrap;
+      /* dalbe: the wrapping <li> now holds two rows (the link+chevron row,
+         then the accordion). Aligning the whole box centrally would drag
+         row one's contents around as row two grows, so pin lines to the
+         start instead — the chevron rule below depends on this. */
+      align-items: flex-start;
+    }
+
+    /* dalbe: the chevron is absolutely positioned at top:50% of the <li>
+       on desktop, which is fine while the <li> is a single 32px row. On
+       mobile the open accordion lives INSIDE that same <li>, so it grows
+       to ~520px and 50% dropped the chevron 244px down — floating in the
+       vertical middle of the open drawer, far from the category it
+       belongs to (and reading as if it controlled the sub-items rather
+       than the parent). Making it a normal flex item puts it back on the
+       category's own row, where the accordion growing underneath can't
+       move it. */
+    .dalbe-category-nav__expand {
+      position: static;
+      transform: none;
+      /* matches .dalbe-category-nav__category-link's own vertical padding
+         so the chevron sits on the link's baseline row, not above it */
+      padding: 5px 12px;
+      min-height: 32px;
     }
 
     .dalbe-category-nav__accordion[hidden] {
@@ -936,14 +1119,51 @@
        without this, depth-1 (bold headers) and depth-2 (leaf links) sat
        flush at the same left edge with no visual hierarchy at all. */
     .dalbe-category-nav__accordion .dalbe-category-nav__node-list {
-      border-inline-start: 2px solid #ebebeb;
+      /* dalbe: navy instead of #ebebeb — at three tiers deep a near-white
+         hairline wasn't enough to tell the levels apart on a phone. */
+      border-inline-start: 2px solid var(--dalbe-navy);
       padding-inline-start: 12px;
       margin-block-end: 4px;
     }
 
     .dalbe-category-nav__accordion .dalbe-category-nav__node-list .dalbe-category-nav__node-list {
-      border-inline-start-color: transparent;
+      /* dalbe: was transparent, which erased the connector exactly where
+         it was needed most — the deepest tier. Now a lighter line, so the
+         two nested levels read as distinct rather than identical. */
+      border-inline-start: 1px solid #c7cce3;
       padding-inline-start: 14px;
+    }
+
+    /* dalbe: the three tiers were nearly indistinguishable on mobile — an
+       open category looked the same as a closed one, and depth-1 headings
+       sat at the same visual weight as the leaf links beneath them. These
+       rules give each level its own treatment: the open PARENT gets navy
+       bold on a tinted row so you can see what you're inside, depth-1
+       group headings stay navy but smaller, and leaf links drop to a
+       muted grey. */
+    .dalbe-category-nav__category:has([aria-expanded='true']) {
+      background: #f4f5fb;
+    }
+
+    .dalbe-category-nav__category:has([aria-expanded='true']) > .dalbe-category-nav__category-link {
+      color: var(--dalbe-navy);
+      font-weight: 700;
+    }
+
+    .dalbe-category-nav__accordion .dalbe-category-nav__node--depth-1 > .dalbe-category-nav__node-link {
+      color: var(--dalbe-navy);
+      font-size: 0.8125rem;
+    }
+
+    .dalbe-category-nav__accordion .dalbe-category-nav__node--depth-2 > .dalbe-category-nav__node-link {
+      color: #5a6178;
+    }
+
+    /* dalbe: leaf links were padding-block:2px — a ~19px tap target, well
+       under the ~44px minimum for touch. Only raised inside the mobile
+       accordion so the dense desktop flyout columns are unaffected. */
+    .dalbe-category-nav__accordion .dalbe-category-nav__node-link {
+      padding-block: 7px;
     }
 
     .dalbe-category-nav__sidebar-links {

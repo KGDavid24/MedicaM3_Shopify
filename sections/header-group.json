@@ -75,7 +75,7 @@
       ],
       "settings": {
         "trigger_label": "Categorii",
-        "trigger_message": "Livrare gratuită pentru orice comandă"
+        "trigger_message": "Livrare gratuită la comenzi peste 500 lei"
       }
     }
   },

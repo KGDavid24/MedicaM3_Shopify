@@ -90,14 +90,23 @@
      at any viewport width, with no cross-section variable mirroring. */
   @media screen and (min-width: 990px) {
     .dalbe-hero-slideshow__container.section--page-width {
+      /* dalbe: switched from 100vw to 100% — 100vw counts the vertical
+         scrollbar, the real centered content does not, so the vw version
+         sat half a scrollbar right of every native section (the "menu is
+         off-centre at some resolutions" report). Every use here is a
+         width context (grid-template-columns below), so % resolves
+         correctly; the caveat in the comment above about % breaking in a
+         height calc applies only to dalbe-category-nav.liquid, which is
+         the file that actually derives a height from these, and which
+         keeps its own vw-based copy for exactly that reason. */
       --dalbe-page-margin-offset: max(
         var(--page-margin),
-        calc((100vw - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--page-margin) * 2))) / 2)
+        calc((100% - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100% - var(--page-margin) * 2))) / 2)
       );
       --dalbe-left-margin: calc(var(--dalbe-page-margin-offset) + 280px);
       --dalbe-content-width: min(
         calc(var(--page-width) - var(--page-margin) * 2),
-        calc(100vw - var(--dalbe-left-margin) - var(--dalbe-page-margin-offset))
+        calc(100% - var(--dalbe-left-margin) - var(--dalbe-page-margin-offset))
       );
       grid-template-columns: var(--dalbe-left-margin) var(--dalbe-content-width) var(--dalbe-page-margin-offset);
     }

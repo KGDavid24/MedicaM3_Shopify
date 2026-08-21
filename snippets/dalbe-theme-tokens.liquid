@@ -663,7 +663,16 @@
     overflow: hidden;
     margin: -16px -16px 12px;
     padding: 16px;
-    background: linear-gradient(180deg, #f4f5fb 0%, #eceefa 100%);
+    /* dalbe: white, not the previous light-lilac gradient. Nearly every
+       product photo in this catalog ships with its own white studio
+       background baked into the file, so a tinted panel behind them made
+       each photo's own white rectangle visible as a distinct block --
+       and since those rectangles differ in proportion product to product,
+       the grid read as "every image is a different size" even though the
+       tiles themselves are identical 1:1 boxes. Matching the panel to the
+       photos' own background makes them blend, so only the product is
+       visible and the row looks uniform. */
+    background: #ffffff;
   }
 
   .dalbe-product-card__img-wrap img {
@@ -675,6 +684,33 @@
 
   .dalbe-product-card:hover .dalbe-product-card__img-wrap img {
     transform: scale(1.05);
+  }
+
+  /* dalbe: product-page gallery must never enlarge a photo past its own
+     resolution. The gallery column renders ~571px wide, but most of this
+     catalog's product shots are only ~483px square, and both `cover` and
+     `contain` scale a small image UP to fill the box -- so those photos
+     were being blown up ~18% and going visibly soft/pixelated (reported
+     by the client, who confirmed no higher-res originals exist).
+
+     `scale-down` is the one object-fit value that fixes this: it behaves
+     exactly like `contain` for images larger than the box, but leaves
+     anything smaller at its native size instead of upscaling. Oversized
+     photos still shrink to fit; undersized ones now sit centred at 1:1
+     and stay sharp.
+
+     Scoped to <media-gallery> (product page only) so product cards --
+     which share .product-media-container via card-gallery.liquid, and
+     genuinely do want to fill their tile -- are untouched. The doubled
+     class in each selector is deliberate: Horizon's own
+     `.media-fit-cover :is(img, video, iframe, .deferred-media__poster-image)`
+     scores (0,2,0) and already beats the theme's own
+     `.product-media-container img` contain rule, so a plainer selector
+     here would silently lose too. */
+  media-gallery .product-media-container.media-fit-cover img,
+  media-gallery .product-media-container.media-fit-contain img,
+  media-gallery .product-media-container.media-fit img {
+    object-fit: scale-down;
   }
 
   .dalbe-product-card__name {
@@ -773,8 +809,20 @@
     font-weight: 600;
   }
 
+  /* dalbe: the pill is the sliding element that paints the SELECTED
+     variant's fill; it sits inside the button and must follow the
+     button's own corner radius. This used to force 999px (a stadium),
+     left over from when these buttons were themselves pill-shaped --
+     they're now 14px (settings_data.json → variant_button_radius), so a
+     999px fill curved away from the corners and left white crescents
+     inside the outline, especially at the short left/right ends where a
+     999px radius resolves to a half-circle. Invisible while the selected
+     fill was pale lilac; obvious the moment it became solid navy.
+
+     `inherit` tracks whatever variant_button_radius is set to, so this
+     can't drift out of sync again if that setting changes. */
   .product-details .variant-option__button-label__pill {
-    border-radius: 999px !important;
+    border-radius: inherit;
   }
 
   .product-details .buy-buttons .add-to-cart-button {

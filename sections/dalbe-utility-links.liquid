@@ -50,13 +50,25 @@
      each other. */
   @media screen and (min-width: 990px) {
     .dalbe-utility-links-section.section--page-width {
+      /* dalbe: 100%, not 100vw. 100vw counts the vertical scrollbar; the
+         real centered content does not, so a vw-based offset lands half a
+         scrollbar (~5-8px) right of every native Horizon section on the
+         page -- visible as the header/nav sitting off-centre against the
+         content below it, and only above 1520px where this branch of the
+         max() actually engages (hence "only at some resolutions"). This
+         section is a child of .page-wrapper, which at >=990px is the real
+         scroll container, so 100% here IS the true content width with the
+         scrollbar already excluded. Safe because every use below is a
+         width context -- see dalbe-category-nav.liquid for the one place
+         that must stay vw-based (a height derivation, where % would
+         resolve against height instead). */
       --dalbe-page-margin-offset: max(
         var(--page-margin),
-        calc((100vw - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--page-margin) * 2))) / 2)
+        calc((100% - min(calc(var(--page-width) - var(--page-margin) * 2), calc(100% - var(--page-margin) * 2))) / 2)
       );
       grid-template-columns:
         var(--dalbe-page-margin-offset)
-        min(calc(var(--page-width) - var(--page-margin) * 2), calc(100vw - var(--dalbe-page-margin-offset) * 2))
+        min(calc(var(--page-width) - var(--page-margin) * 2), calc(100% - var(--dalbe-page-margin-offset) * 2))
         var(--dalbe-page-margin-offset);
     }
   }
